@@ -104,48 +104,49 @@ h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; margin:0; }
 .app{ display:flex; min-height:100vh; }
 .sidebar{
   width:230px; flex-shrink:0;
-  background: var(--brand-dark);
-  color:#EFF4F2;
+  background: #fff;
+  color:#1F4E44;
   display:flex; flex-direction:column;
   padding:22px 16px;
 }
-.brand{ display:flex; align-items:center; gap:10px; margin-bottom:28px; padding:0 6px; }
-.brand strong{ display:block; font-size:14px; }
-.brand small{ color:#B9CFC8; font-size:11px; }
+.brand{ display:flex; align-items:center; justify-content:flex-start; ; margin-bottom:10px; padding:50 6px; min-height:64px; }
+.brand-logo{ width:200px; height:100px; flex:0 0 auto; }
+.brand-logo img{ width:100%; height:100%; object-fit:contain; display:block; }
+
 nav{ display:flex; flex-direction:column; gap:4px; flex:1; position:relative; }
 .nav-indicator{
-  position:absolute; left:0; width:100%; border-radius:8px; background:var(--brand);
-  box-shadow:0 4px 12px rgba(0,0,0,.18);
+  position:absolute; left:0; width:100%; border-radius:8px; background:#D8F2E8;
+  box-shadow:0 4px 12px rgba(0,0,0,.08);
   transition: transform var(--t-med) var(--ease-spring), height var(--t-med) var(--ease);
   z-index:0; pointer-events:none; opacity:0;
 }
 .nav-indicator.ready{ opacity:1; }
 .nav-link{
-  text-align:left; background:none; border:none; color:#D6E4DF;
+  text-align:left; background:none; border:none; color:#1F4E44;
   padding:10px 12px; border-radius:8px; font-size:13.5px; cursor:pointer; font-family:inherit;
   display:flex; align-items:center; gap:10px; position:relative; z-index:1;
   transition: color var(--t-fast) var(--ease), background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
-.nav-link:hover{ background:rgba(255,255,255,.06); transform:translateX(2px); }
-.nav-link.active{ color:#fff; font-weight:600; }
+.nav-link:hover{ background:#E6F5EF; transform:translateX(2px); }
+.nav-link.active{ color:#1F4E44; font-weight:700; background:#D8F2E8; }
 .nav-icon{ width:16px; height:16px; flex-shrink:0; display:inline-flex; align-items:center; justify-content:center; font-size:13px; opacity:.9; }
 .nav-icon[data-icon="dashboard"]::before{ content:"◧"; }
 .nav-icon[data-icon="employees"]::before{ content:"☺"; }
 .nav-icon[data-icon="reports"]::before{ content:"▤"; }
 .nav-icon[data-icon="audit"]::before{ content:"◷"; }
-.sidebar-footer{ border-top:1px solid rgba(255,255,255,.12); padding-top:14px; }
-.sync-indicator{ display:flex; align-items:center; gap:7px; font-size:11px; color:#B9CFC8; margin-bottom:10px; }
-.sync-dot{ width:7px; height:7px; border-radius:50%; background:#7FD9AE; box-shadow:0 0 0 0 rgba(127,217,174,.6); flex-shrink:0; animation: dotPulse 2.4s ease-in-out infinite; }
-@keyframes dotPulse{ 0%{ box-shadow:0 0 0 0 rgba(127,217,174,.55); } 70%{ box-shadow:0 0 0 6px rgba(127,217,174,0); } 100%{ box-shadow:0 0 0 0 rgba(127,217,174,0); } }
+.sidebar-footer{ border-top:1px solid rgba(31,78,68,.15); padding-top:14px; }
+.sync-indicator{ display:flex; align-items:center; gap:7px; font-size:11px; color:#4A7B6A; margin-bottom:10px; }
+.sync-dot{ width:7px; height:7px; border-radius:50%; background:#1F4E44; box-shadow:0 0 0 0 rgba(31,78,68,.25); flex-shrink:0; animation: dotPulse 2.4s ease-in-out infinite; }
+@keyframes dotPulse{ 0%{ box-shadow:0 0 0 0 rgba(31,78,68,.25); } 70%{ box-shadow:0 0 0 6px rgba(31,78,68,0); } 100%{ box-shadow:0 0 0 0 rgba(31,78,68,0); } }
 .sync-indicator.saving .sync-dot{ background:#F0B860; animation: dotSpin .8s linear infinite; }
 @keyframes dotSpin{ 0%,100%{ transform:scale(1); } 50%{ transform:scale(1.4); } }
-#current-user{ font-size:12px; color:#B9CFC8; margin-bottom:10px; word-break:break-all; }
+#current-user{ font-size:12px; color:#4A7B6A; margin-bottom:10px; word-break:break-all; }
 #logout-btn{
-  width:100%; background:transparent; border:1px solid rgba(255,255,255,.25); color:#EFF4F2;
+  width:100%; background:transparent; border:1px solid rgba(31,78,68,.25); color:#1F4E44;
   padding:8px; border-radius:8px; cursor:pointer; font-size:12.5px; font-family:inherit;
   transition: background var(--t-fast) var(--ease), transform var(--t-fast) var(--ease);
 }
-#logout-btn:hover{ background:rgba(255,255,255,.08); }
+#logout-btn:hover{ background:rgba(31,78,68,.08); }
 #logout-btn:active{ transform:scale(.96); }
 
 .content{ flex:1; padding:32px 40px; max-width:1100px; }
