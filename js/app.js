@@ -350,13 +350,16 @@ async function renderEmployeesTable({ skeleton = true } = {}) {
 /* ---------------- Employee detail / form ---------------- */
 const employeeForm = document.getElementById("employee-form");
 const tabButtons = document.querySelectorAll(".tab-btn");
+const tabOrder = Array.from(tabButtons).map((b) => b.dataset.tab);
+
+function goToTab(tabName) {
+  tabButtons.forEach((b) => b.classList.toggle("active", b.dataset.tab === tabName));
+  document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.dataset.tab !== tabName));
+  positionTabIndicator();
+}
+
 tabButtons.forEach((btn) => {
-  btn.addEventListener("click", () => {
-    tabButtons.forEach((b) => b.classList.remove("active"));
-    btn.classList.add("active");
-    document.querySelectorAll(".tab-panel").forEach((p) => p.classList.toggle("hidden", p.dataset.tab !== btn.dataset.tab));
-    positionTabIndicator();
-  });
+  btn.addEventListener("click", () => goToTab(btn.dataset.tab));
 });
 
 function openEmployee(id) {
@@ -401,17 +404,19 @@ function openEmployee(id) {
   showView("employee-detail");
 }
 
-employeeForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
+async function persistEmployeeForm({ silent = false } = {}) {
   const statusEl = document.getElementById("save-status");
-  const submitBtn = employeeForm.querySelector('button[type="submit"]');
   statusEl.classList.remove("is-error");
   statusEl.innerHTML = "Saving…";
-  submitBtn.disabled = true;
   flashSync("Saving…");
   const formData = new FormData(employeeForm);
   const data = {};
   for (const [key, val] of formData.entries()) data[key] = val;
+
+  if (!employeeForm.reportValidity()) {
+    statusEl.textContent = "";
+    return false;
+  }
 
   await wait(250); // brief write delay so the saving state is visible
 
@@ -437,15 +442,36 @@ employeeForm.addEventListener("submit", async (e) => {
     statusPillEl.className = `pill ${cls}`;
     statusPillEl.textContent = label;
     statusPillEl.classList.remove("hidden");
-    showToast("success", isNew ? `${data.fullName || "Staff member"} added.` : `${data.fullName || "Staff record"} updated.`);
+    if (!silent) showToast("success", isNew ? `${data.fullName || "Staff member"} added.` : `${data.fullName || "Staff record"} updated.`);
+    return true;
   } catch (err) {
     console.error(err);
     statusEl.classList.add("is-error");
     statusEl.textContent = "Could not save — check your connection and Firestore rules.";
     showToast("error", "Could not save the staff record.");
-  } finally {
-    submitBtn.disabled = false;
+    return false;
   }
+}
+
+employeeForm.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const submitBtn = employeeForm.querySelector('button[type="submit"]');
+  submitBtn.disabled = true;
+  await persistEmployeeForm();
+  submitBtn.disabled = false;
+});
+
+document.getElementById("save-next-btn").addEventListener("click", async () => {
+  const btn = document.getElementById("save-next-btn");
+  btn.disabled = true;
+  const ok = await persistEmployeeForm({ silent: true });
+  btn.disabled = false;
+  if (!ok) return;
+  const activeTab = document.querySelector(".tab-btn.active")?.dataset.tab || "basic";
+  const nextIdx = (tabOrder.indexOf(activeTab) + 1) % tabOrder.length;
+  goToTab(tabOrder[nextIdx]);
+  const nextLabel = document.querySelector(`.tab-btn[data-tab="${tabOrder[nextIdx]}"]`)?.textContent || "next section";
+  showToast("success", `Saved — now on ${nextLabel}.`, 2200);
 });
 
 document.getElementById("delete-employee-btn").addEventListener("click", async () => {
