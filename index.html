@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Dreams Care Homes — Staff Compliance Portal</title>
+<link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-brand">
+      <span class="auth-mark">DC</span>
+      <div>
+        <h1>Dreams Care Homes</h1>
+        <p>Staff Compliance Portal</p>
+      </div>
+    </div>
+    <form id="login-form">
+      <label>Email
+        <input type="email" id="login-username" required autocomplete="username" />
+      </label>
+      <label>Password
+        <input type="password" id="login-password" required autocomplete="current-password" />
+      </label>
+      <button type="submit">Open admin portal</button>
+      <p id="login-error" class="error-text"></p>
+    </form>
+  </div>
+</div>
+
+<div id="app" class="app hidden">
+  <aside class="sidebar">
+    <div class="brand">
+      <div class="brand-logo">
+        <img src="dhcp-logo.svg" alt="Dreams Care Homes logo" />
+      </div>
+      
+    </div>
+    <nav id="main-nav">
+      <span class="nav-indicator" id="nav-indicator" aria-hidden="true"></span>
+      <button class="nav-link active" data-view="dashboard"><span class="nav-icon" data-icon="dashboard"></span>Dashboard</button>
+      <button class="nav-link" data-view="employees"><span class="nav-icon" data-icon="employees"></span>Staff records</button>
+      <button class="nav-link" data-view="reports"><span class="nav-icon" data-icon="reports"></span>Reports</button>
+      <button class="nav-link" data-view="documents"><span class="nav-icon" data-icon="documents"></span>Staff documents</button>
+      <button class="nav-link" data-view="contacts"><span class="nav-icon" data-icon="contacts"></span>Contact staff</button>
+      <button class="nav-link" data-view="audit"><span class="nav-icon" data-icon="audit"></span>Audit log</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="sync-indicator" id="sync-indicator">
+        <span class="sync-dot"></span>
+        <span id="sync-label">All changes saved</span>
+      </div>
+      <div id="current-user"></div>
+      <button id="logout-btn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="content">
+
+    <!-- DASHBOARD -->
+    <section id="view-dashboard" class="view">
+      <header class="view-header">
+        <h2>Dashboard</h2>
+        <p>Sponsor licence compliance at a glance.</p>
+      </header>
+      <div class="stat-grid" id="stat-grid"></div>
+      <div class="panel">
+        <h3>Expiring within 90 days</h3>
+        <table class="data-table" id="expiry-table">
+          <thead><tr><th>Staff member</th><th>Item</th><th>Expiry date</th><th>Days left</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p class="empty-note hidden" id="expiry-empty">Nothing expiring in the next 90 days.</p>
+      </div>
+    </section>
+
+    <!-- EMPLOYEES LIST -->
+    <section id="view-employees" class="view hidden">
+      <header class="view-header">
+        <h2>Staff records</h2>
+        <button class="primary-btn" id="add-employee-btn">+ Add staff member</button>
+      </header>
+      <input type="text" id="employee-search" placeholder="Search by name, department or employee ID…" class="search-input" />
+      <table class="data-table" id="employees-table">
+        <thead><tr><th>Name</th><th>Department</th><th>Job title</th><th>RTW status</th><th>Visa expiry</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- EMPLOYEE DETAIL / FORM -->
+    <section id="view-employee-detail" class="view hidden">
+      <header class="view-header">
+        <button class="back-btn" id="back-to-employees">← Staff records</button>
+      </header>
+
+      <div class="detail-card">
+        <div class="detail-identity">
+          <div class="detail-avatar" id="detail-avatar">＋</div>
+          <div class="detail-identity-text">
+            <h2 id="employee-detail-name">New staff member</h2>
+            <p id="employee-detail-meta">Fill in the profile to create a staff record</p>
+          </div>
+          <span class="pill neutral hidden" id="employee-detail-status"></span>
+        </div>
+
+        <div class="tabs" id="employee-tabs">
+          <span class="tab-indicator" id="tab-indicator" aria-hidden="true"></span>
+          <button class="tab-btn active" data-tab="basic"><span class="tab-icon">◐</span>Profile</button>
+          <button class="tab-btn" data-tab="rtw"><span class="tab-icon">🛂</span>Right to Work</button>
+          <button class="tab-btn" data-tab="sponsor"><span class="tab-icon">📄</span>Sponsor licence</button>
+          <button class="tab-btn" data-tab="dbs"><span class="tab-icon">✔</span>DBS &amp; references</button>
+          <button class="tab-btn" data-tab="documents"><span class="tab-icon">📎</span>Documents</button>
+          <button class="tab-btn" data-tab="training"><span class="tab-icon">🎓</span>Training</button>
+        </div>
+
+        <form id="employee-form">
+          <div class="tab-panel" data-tab="basic">
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Personal details</div>
+              <div class="form-grid">
+                <label>Full name <input name="fullName" required placeholder="e.g. Sarah Whitfield" /></label>
+                <label>Employee ID <input name="employeeId" required placeholder="e.g. DCH-0142" /></label>
+                <label>Date of birth <input type="date" name="dob" /></label>
+                <label>Nationality <input name="nationality" placeholder="e.g. British" /></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Employment</div>
+              <div class="form-grid">
+                <label>Job title <input name="jobTitle" placeholder="e.g. Care Assistant" /></label>
+                <label>Department <input name="department" placeholder="e.g. Domiciliary Care" /></label>
+                <label>NI number <input name="niNumber" placeholder="e.g. QQ 12 34 56 C" /></label>
+                <label>Start date <input type="date" name="startDate" /></label>
+                <label>Work location <input name="workLocation" placeholder="e.g. Reading branch" /></label>
+                <label>Status
+                  <select name="status">
+                    <option value="active">Active</option>
+                    <option value="probation">On probation</option>
+                    <option value="leaver">Leaver</option>
+                  </select>
+                </label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Contact &amp; payroll</div>
+              <div class="form-grid">
+                <label>Address <input name="address" placeholder="Street, city, postcode" /></label>
+                <label>Email address <input type="email" name="email" placeholder="name@example.com" /></label>
+                <label>Contact number <input name="phone" placeholder="e.g. 07700 900123" /></label>
+                <label>NMC / SCW pin <input name="pinNumber" /></label>
+                <label>Bank account reference <input name="bankRef" placeholder="e.g. last 4 digits only" /></label>
+              </div>
+            </div>
+
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Notes</div>
+              <label class="full-width">Employment gaps (dates &amp; reason)
+                <textarea name="employmentGaps" rows="2" placeholder="Leave blank if none"></textarea>
+              </label>
+              <label class="full-width">Job description summary
+                <textarea name="jobDescription" rows="2" placeholder="A short summary of day-to-day duties"></textarea>
+              </label>
+            </div>
+          </div>
+
+          <div class="tab-panel hidden" data-tab="rtw">
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Right to Work check</div>
+              <div class="form-grid">
+                <label>Passport number <input name="rtwPassportNumber" /></label>
+                <label>BRP / eVisa reference <input name="rtwBrp" /></label>
+                <label>Right to Work check date <input type="date" name="rtwCheckDate" /></label>
+                <label>Method of check
+                  <select name="rtwMethod"><option value="online">Online</option><option value="manual">Manual</option></select>
+                </label>
+                <label>Right to Work expiry date <input type="date" name="rtwExpiry" /></label>
+                <label>Checked by <input name="rtwCheckedBy" /></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel hidden" data-tab="sponsor">
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Certificate of Sponsorship</div>
+              <div class="form-grid">
+                <label>Certificate of Sponsorship (CoS) number <input name="cosNumber" /></label>
+                <label>Visa type <input name="visaType" /></label>
+                <label>Visa start date <input type="date" name="visaStart" /></label>
+                <label>Visa expiry date <input type="date" name="visaExpiry" /></label>
+                <label>Annual salary (£) <input type="number" name="salary" /></label>
+                <label>Contract hours / week <input type="number" name="contractHours" /></label>
+                <label>SOC code <input name="socCode" /></label>
+              </div>
+              <label class="full-width">Sickness / absence notes
+                <textarea name="absenceNotes" rows="2"></textarea>
+              </label>
+            </div>
+          </div>
+
+          <div class="tab-panel hidden" data-tab="dbs">
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>Enhanced DBS</div>
+              <div class="form-grid">
+                <label>Enhanced DBS issue date <input type="date" name="dbsIssue" /></label>
+                <label>Enhanced DBS expiry date <input type="date" name="dbsExpiry" /></label>
+                <label>DBS clearance
+                  <select name="dbsClearance"><option value="yes">Yes</option><option value="no">No</option></select>
+                </label>
+              </div>
+            </div>
+            <div class="form-section">
+              <div class="form-section-title"><span class="section-dot"></span>References</div>
+              <div class="form-grid">
+                <label>Professional reference 1 <input name="refProfessional1" /></label>
+                <label>Professional reference 2 <input name="refProfessional2" /></label>
+                <label>Character reference <input name="refCharacter" /></label>
+              </div>
+            </div>
+          </div>
+
+          <div class="tab-panel hidden" data-tab="documents">
+            <p class="hint-text">Uploads are stored in Firebase Storage. Set an expiry date for anything time-limited so it appears in dashboard alerts and reports.</p>
+            <div class="doc-upload-row">
+              <select id="doc-type-select">
+                <option>Passport</option>
+                <option>Visa document</option>
+                <option>Employment contract</option>
+                <option>Qualification certificate</option>
+                <option>Proof of address</option>
+                <option>DBS certificate</option>
+                <option>Training certificate</option>
+                <option>Signed policy</option>
+                <option>Other supporting document</option>
+              </select>
+              <input type="date" id="doc-expiry-input" />
+              <input type="file" id="doc-file-input" />
+              <button type="button" id="doc-upload-btn" class="secondary-btn">Upload</button>
+            </div>
+            <div class="upload-progress hidden" id="upload-progress"><div class="upload-progress-bar" id="upload-progress-bar"></div></div>
+            <table class="data-table" id="documents-table">
+              <thead><tr><th>Type</th><th>File</th><th>Expiry</th><th>Uploaded</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="tab-panel hidden" data-tab="training">
+            <div class="doc-upload-row">
+              <input type="text" id="training-name-input" placeholder="Training / supervision name" />
+              <input type="date" id="training-date-input" />
+              <input type="date" id="training-expiry-input" title="Renewal due" />
+              <button type="button" id="training-add-btn" class="secondary-btn">Add record</button>
+            </div>
+            <table class="data-table" id="training-table">
+              <thead><tr><th>Training</th><th>Completed</th><th>Renewal due</th><th></th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+
+          <div class="form-actions">
+            <button type="button" id="save-next-btn" class="primary-btn">Save &amp; Next</button>
+            <button type="button" id="delete-employee-btn" class="danger-btn hidden">Delete record</button>
+            <span id="save-status" class="save-status"></span>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- REPORTS -->
+    <section id="view-reports" class="view hidden">
+      <header class="view-header">
+        <h2>Reports</h2>
+        <p>Compliance snapshots you can export to CSV.</p>
+      </header>
+      <div class="report-grid">
+        <button class="report-card" data-report="visa90">Visa expiry within 90 days</button>
+        <button class="report-card" data-report="missingDocs">Missing documents</button>
+        <button class="report-card" data-report="sponsored">Sponsored workers</button>
+        <button class="report-card" data-report="rtwStatus">Right to Work status</button>
+        <button class="report-card" data-report="staffList">Full staff list</button>
+      </div>
+      <div class="panel">
+        <div class="panel-header">
+          <h3 id="report-title">Select a report</h3>
+          <button id="export-csv-btn" class="secondary-btn hidden">Export CSV</button>
+        </div>
+        <table class="data-table" id="report-table">
+          <thead></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- STAFF DOCUMENTS (all documents from every staff record, live) -->
+    <section id="view-documents" class="view hidden">
+      <header class="view-header">
+        <h2>Staff documents</h2>
+        <p>Every document uploaded across all staff records, updating live.</p>
+      </header>
+      <input type="text" id="documents-search" placeholder="Search by staff name, document type or file name…" class="search-input" />
+      <table class="data-table" id="all-documents-table">
+        <thead><tr><th>Staff member</th><th>Document type</th><th>File</th><th>Expiry</th><th>Uploaded</th><th></th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+    <!-- CONTACT STAFF -->
+    <section id="view-contacts" class="view hidden">
+      <header class="view-header">
+        <h2>Contact staff</h2>
+        <p>Reach any staff member directly by phone, email or WhatsApp.</p>
+      </header>
+      <input type="text" id="contacts-search" placeholder="Search by name, department or job title…" class="search-input" />
+      <div class="contact-grid" id="contact-grid"></div>
+      <p class="empty-note hidden" id="contacts-empty">No staff contact details yet — add a phone number or email in a staff profile.</p>
+    </section>
+
+    <!-- AUDIT LOG -->
+    <section id="view-audit" class="view hidden">
+      <header class="view-header">
+        <h2>Audit log</h2>
+        <p>Who viewed, edited or deleted records, and when.</p>
+      </header>
+      <table class="data-table" id="audit-table">
+        <thead><tr><th>Date/time</th><th>User</th><th>Action</th><th>Staff record</th><th>Details</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </section>
+
+  </main>
+</div>
+
+<div class="toast-stack" id="toast-stack" aria-live="polite" aria-atomic="true"></div>
+
+<div class="modal-backdrop hidden" id="modal-backdrop">
+  <div class="modal-card" id="modal-card" role="alertdialog" aria-modal="true">
+    <h3 id="modal-title">Are you sure?</h3>
+    <p id="modal-body"></p>
+    <div class="modal-actions">
+      <button type="button" class="secondary-btn" id="modal-cancel">Cancel</button>
+      <button type="button" class="danger-btn" id="modal-confirm">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="js/app.js"></script>
+</body>
+</html>
