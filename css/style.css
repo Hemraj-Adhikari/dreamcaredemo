@@ -53,14 +53,25 @@ h1,h2,h3{ font-family:'Fraunces', serif; font-weight:600; margin:0; }
 .auth-screen{ animation: authBgIn .6s var(--ease); }
 @keyframes authBgIn{ from{ opacity:0; } to{ opacity:1; } }
 .auth-card{
-  background: var(--surface);
+  background:var(--surface);
   border:1px solid var(--line);
-  border-radius: 16px;
-  box-shadow: var(--shadow);
+  border-radius:16px;
+  box-shadow:var(--shadow);
   padding:40px;
   width:100%;
-  max-width:380px;
-  animation: cardRise .55s var(--ease-spring) both;
+  max-width:480px;
+}
+
+.login-logo{
+  width:100%;
+  margin-bottom:28px;
+}
+
+.login-logo img{
+  width:100%;
+  height:auto;
+  display:block;
+  object-fit:contain;
 }
 @keyframes cardRise{ from{ opacity:0; transform:translateY(18px) scale(.97); } to{ opacity:1; transform:translateY(0) scale(1); } }
 .auth-brand{ display:flex; align-items:center; gap:14px; margin-bottom:28px; }
