@@ -374,5 +374,19 @@
 </div>
 
 <script type="module" src="js/app.js"></script>
+  <!-- Simple script just for the "Show password" button -->
+<script>
+  var toggleBtn = document.getElementById("toggle-password");
+  var passwordInput = document.getElementById("login-password");
+
+  toggleBtn.addEventListener("click", function () {
+    if (passwordInput.type === "password") {
+      passwordInput.type = "text";
+      toggleBtn.textContent = "Hide password";
+    } else {
+      passwordInput.type = "password";
+      toggleBtn.textContent = "Show password";
+    }
+  });
 </body>
 </html>
