@@ -10,20 +10,51 @@
 
 <div id="auth-screen" class="auth-screen">
   <div class="auth-card">
-    <div class= "login-logo">
-        <img src="dhcp-logo.svg" alt="Dreams Care Homes logo" />
-      </div>
-    <form id="login-form">
-      <label>Email
-        <input type="email" id="login-username" required autocomplete="username" />
-      </label>
-      <label>Password
-        <input type="password" id="login-password" required autocomplete="current-password" />
-      </label>
-      <button type="submit">Open admin portal</button>
-      <p id="login-error" class="error-text"></p>
-    </form>
-  </div>
+  <!-- LEFT SIDE: green panel with logo + info -->
+    <div class="auth-left">
+      <img src="dhcp-logo.svg" alt="Dreams Care Homes" class="auth-logo" />
+
+      <span class="auth-kicker">Staff Compliance Portal</span>
+      <h2>Sponsor licence compliance, handled with care.</h2>
+      <p>One secure home for Right to Work checks, DBS renewals, sponsor licence records and every staff document your audits will ask for.</p>
+
+      <ul class="auth-features">
+        <li>Right to Work &amp; sponsor licence tracking</li>
+        <li>DBS checks &amp; renewal alerts</li>
+        <li>All staff documents in one place</li>
+      </ul>
+</div>
+  <!-- RIGHT SIDE: the actual login form -->
+    <div class="auth-right">
+      <span class="auth-eyebrow">Admin sign in</span>
+      <h1>Welcome back</h1>
+      <p class="auth-subtitle">Sign in with your Dreams Care Homes admin account.</p>
+
+      <form id="login-form">
+        <label>Email address
+          <input type="email" id="login-username" required autocomplete="username" placeholder="you@dreamscarehomes.co.uk" />
+        </label>
+
+        <label>Password
+          <input type="password" id="login-password" required autocomplete="current-password" placeholder="Enter your password" />
+        </label>
+        <button type="button" id="toggle-password">Show password</button>
+
+        <div class="auth-row">
+          <label class="remember-row">
+            <input type="checkbox" id="remember-me" />
+            Remember me
+          </label>
+          <a href="#">Forgot password?</a>
+        </div>
+
+        <button type="submit">Open admin portal</button>
+        <p id="login-error" class="error-text"></p>
+      </form>
+
+      <p class="auth-note">Access limited to authorised staff. All sign-ins are logged for compliance auditing.</p>
+    </div>
+</div>
 </div>
 
 <div id="app" class="app hidden">
