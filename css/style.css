@@ -616,6 +616,144 @@ textarea { resize: vertical; font-family: inherit; }
 .modal-card p { color: var(--ink-soft); font-size: 13.5px; line-height: 1.5; }
 .modal-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
 
+/* exit animations — these classes are toggled by app.js and were previously
+   undefined, so .toast/.modal-backdrop never fired "animationend" and stuck
+   on screen after being dismissed */
+.toast.leaving { animation: toastOut 0.2s var(--ease) forwards; }
+@keyframes toastOut { to { opacity: 0; transform: translateY(8px) scale(0.96); } }
+.modal-backdrop.leaving { animation: modalOut 0.16s var(--ease) forwards; }
+@keyframes modalOut { to { opacity: 0; } }
+
+/* ==========================================================================
+   Stat cards (dashboard)
+   ========================================================================== */
+.stat-card {
+  position: relative;
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  padding: 18px 20px 16px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease);
+}
+.stat-card::before {
+  content: "";
+  position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+  background: var(--sage);
+}
+.stat-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.stat-card .num { font-family: var(--font-display); font-size: 30px; font-weight: 600; color: var(--ink); line-height: 1.15; }
+.stat-card .label { font-size: 12.5px; font-weight: 600; color: var(--ink-soft); margin-top: 5px; }
+.stat-card.warn::before { background: var(--amber); }
+.stat-card.warn .num { color: #97620F; }
+.stat-card.danger::before { background: var(--danger); }
+.stat-card.danger .num { color: var(--danger); }
+
+/* ==========================================================================
+   Skeleton loading states
+   ========================================================================== */
+.skeleton-line {
+  height: 12px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--line-soft) 25%, #F5F3EA 50%, var(--line-soft) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+.skeleton-row td { padding: 13px 14px; }
+
+/* ==========================================================================
+   Button ripple micro-interaction
+   ========================================================================== */
+.primary-btn, .secondary-btn, .danger-btn, .report-card, #logout-btn { position: relative; overflow: hidden; }
+.ripple {
+  position: absolute;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.5);
+  transform: scale(0);
+  animation: rippleAnim 0.55s var(--ease);
+  pointer-events: none;
+}
+.secondary-btn .ripple, .report-card .ripple, #logout-btn .ripple { background: rgba(61, 107, 92, 0.14); }
+@keyframes rippleAnim { to { transform: scale(1); opacity: 0; } }
+
+/* ==========================================================================
+   Toast internals
+   ========================================================================== */
+.toast { display: flex; align-items: center; gap: 10px; }
+.toast-icon {
+  flex: none; width: 20px; height: 20px; border-radius: 50%;
+  display: grid; place-items: center;
+  font-size: 11px; font-weight: 700;
+  background: rgba(255, 255, 255, 0.16);
+}
+.toast.success .toast-icon { background: rgba(96, 200, 150, 0.3); }
+.toast.error .toast-icon { background: rgba(224, 110, 90, 0.3); }
+.toast-msg { flex: 1; }
+.toast-close { flex: none; background: none; border: none; color: rgba(255, 255, 255, 0.55); font-size: 12px; padding: 2px; line-height: 1; }
+.toast-close:hover { color: #fff; }
+
+/* ==========================================================================
+   Status pills — JS emits "ok"/"danger" modifiers; align with existing tokens
+   ========================================================================== */
+.pill.ok { background: var(--sage-light); color: var(--sage-deep); }
+.pill.danger { background: var(--danger-light); color: var(--danger); }
+.status-check { color: var(--sage); font-weight: 700; margin-right: 3px; }
+
+/* table row links */
+.row-link { color: var(--sage-deep); font-weight: 600; cursor: pointer; text-decoration: none; }
+.row-link:hover { text-decoration: underline; color: var(--teal); }
+
+/* sync indicator "saving" state */
+.sync-indicator.saving .sync-dot { background: var(--amber); }
+.sync-indicator.saving .sync-dot-ring { border-color: var(--amber); animation-duration: 0.9s; }
+
+/* report card selected state */
+.report-card.active { border-color: var(--sage); background: var(--sage-lighter); box-shadow: var(--shadow-md); }
+
+/* ==========================================================================
+   Contact staff cards
+   ========================================================================== */
+.contact-card {
+  background: var(--paper);
+  border: 1px solid var(--line-soft);
+  border-radius: var(--radius-md);
+  padding: 18px 18px 16px;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.16s var(--ease), box-shadow 0.16s var(--ease);
+}
+.contact-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-md); }
+.contact-card-head { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.contact-avatar {
+  width: 42px; height: 42px; border-radius: 12px; flex: none;
+  background: linear-gradient(155deg, var(--sage-light), var(--teal-light));
+  color: var(--sage-deep);
+  display: grid; place-items: center;
+  font-size: 14px; font-weight: 700;
+}
+.contact-name { font-size: 14.5px; font-weight: 600; color: var(--ink); }
+.contact-meta { font-size: 12px; color: var(--ink-faint); margin-top: 2px; }
+.contact-detail-row { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); padding: 5px 0; }
+.contact-detail-row.empty { color: var(--ink-faint); font-style: italic; }
+.contact-icon { flex: none; width: 16px; text-align: center; opacity: 0.85; }
+.contact-actions { display: flex; gap: 8px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line-soft); }
+.contact-actions a {
+  flex: 1; text-align: center;
+  font-size: 12px; font-weight: 600;
+  padding: 8px 6px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: background 0.16s var(--ease), color 0.16s var(--ease);
+}
+.contact-actions a.call { background: var(--teal-light); color: var(--teal); }
+.contact-actions a.call:hover { background: var(--teal); color: #fff; }
+.contact-actions a.email { background: var(--sage-light); color: var(--sage-deep); }
+.contact-actions a.email:hover { background: var(--sage); color: #fff; }
+.contact-actions a.whatsapp { background: var(--amber-light); color: #97620F; }
+.contact-actions a.whatsapp:hover { background: var(--amber); color: #fff; }
+.contact-actions a.disabled { opacity: 0.4; pointer-events: none; }
+
 /* ==========================================================================
    Icon library (inline SVG data-URIs used as CSS masks)
    ========================================================================== */
