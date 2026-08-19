@@ -1,0 +1,230 @@
+/* ============================================================
+   PREMIUM POLISH LAYER
+   Loaded after style.css + dashboard.css. Adds: clickable-card
+   affordances (spotlight, lift, glow, chevrons), staggered entrance
+   animation, a "live" real-time pulse system, button shimmer, and a
+   few performance-conscious rules (will-change only while hovered,
+   GPU-friendly transform/opacity animation, respects reduced motion).
+   Nothing here overrides brand colors — it only adds motion & depth.
+   ============================================================ */
+
+:root{
+  --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --glow-sage: rgba(38, 133, 74, .30);
+  --glow-amber: rgba(217, 142, 63, .32);
+  --glow-danger: rgba(192, 91, 77, .32);
+}
+
+/* ---------------- Clickable card base ---------------- */
+.stat-card,
+.quick-action-card,
+.report-card,
+.contact-card{
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  isolation: isolate;
+  transition: transform .3s var(--spring), box-shadow .32s var(--ease), border-color .22s var(--ease);
+  --mx: 50%; --my: 50%;
+}
+
+.stat-card.is-hot,
+.quick-action-card.is-hot,
+.report-card.is-hot,
+.contact-card.is-hot{ will-change: transform, box-shadow; }
+
+/* soft cursor-following spotlight — reinforces "this is interactive" */
+.stat-card::after,
+.quick-action-card::after,
+.report-card::after,
+.contact-card::after{
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: radial-gradient(240px circle at var(--mx) var(--my), rgba(255,255,255,.65), transparent 62%);
+  opacity: 0;
+  transition: opacity .35s var(--ease);
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 0;
+}
+.stat-card:hover::after,
+.quick-action-card:hover::after,
+.report-card:hover::after,
+.contact-card:hover::after{ opacity: .9; }
+
+.stat-card > *,
+.quick-action-card > *,
+.report-card > *,
+.contact-card > *{ position: relative; z-index: 1; }
+
+.stat-card:hover,
+.contact-card:hover{
+  transform: translateY(-5px) scale(1.012);
+  box-shadow: 0 18px 40px -14px var(--glow-sage), var(--shadow-md);
+}
+.stat-card.warn:hover{ box-shadow: 0 18px 40px -14px var(--glow-amber), var(--shadow-md); }
+.stat-card.danger:hover{ box-shadow: 0 18px 40px -14px var(--glow-danger), var(--shadow-md); }
+
+.quick-action-card:hover,
+.report-card:hover{
+  transform: translateY(-5px) scale(1.015);
+  box-shadow: 0 18px 38px -16px var(--glow-sage), var(--shadow-md);
+}
+
+.stat-card:active,
+.quick-action-card:active,
+.report-card:active,
+.contact-card:active{
+  transform: translateY(-1px) scale(.985);
+  transition-duration: .12s;
+}
+
+/* icon inside stat cards gets a subtle pop + rotate on hover for delight */
+.stat-card:hover .stat-icon{ transform: scale(1.08) rotate(-4deg); }
+.stat-icon{ transition: transform .28s var(--spring); }
+
+/* ---------------- Clickable affordance: sliding chevron ---------------- */
+.quick-action-card,
+.report-card{ padding-right: 40px; }
+.card-arrow{
+  position: absolute;
+  top: 50%; right: 14px;
+  width: 15px; height: 15px;
+  color: var(--sage);
+  opacity: 0;
+  transform: translate(4px, -50%);
+  transition: opacity .22s var(--ease), transform .28s var(--spring);
+  --icon-url: var(--icon-arrowright);
+  pointer-events: none;
+}
+.quick-action-card:hover .card-arrow,
+.report-card:hover .card-arrow{ opacity: 1; transform: translate(0, -50%); }
+.report-card{ position: relative; }
+.report-card .card-arrow{ top: 20px; transform: translate(4px, 0); }
+.report-card:hover .card-arrow{ transform: translate(0, 0); }
+
+/* ---------------- Staggered grid entrance ---------------- */
+.stat-grid > *,
+.quick-actions-grid > *,
+.contact-grid > *,
+.report-grid > *,
+.donut-legend > li{
+  animation: cardEnter .5s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+@keyframes cardEnter{
+  from{ opacity: 0; transform: translateY(14px) scale(.965); }
+  to{ opacity: 1; transform: translateY(0) scale(1); }
+}
+
+/* table rows: gentle fade so refreshed data doesn't just "pop" in */
+.data-table tbody tr{
+  animation: rowEnter .38s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+@keyframes rowEnter{
+  from{ opacity: 0; transform: translateX(-6px); }
+  to{ opacity: 1; transform: translateX(0); }
+}
+.data-table tbody tr:hover{ box-shadow: inset 3px 0 0 0 var(--sage); }
+
+/* ---------------- Live / real-time system ---------------- */
+.live-chip{
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 10.5px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--sage-deep); background: var(--sage-light);
+  padding: 5px 10px 5px 8px; border-radius: 999px;
+  margin-left: 10px;
+}
+.live-dot{ position: relative; width: 7px; height: 7px; border-radius: 50%; background: var(--sage); flex: none; }
+.live-dot::after{
+  content: ""; position: absolute; inset: -5px; border-radius: 50%;
+  border: 1.5px solid var(--sage); opacity: .65;
+  animation: 2s var(--ease) infinite pulseRing;
+}
+@keyframes pulseRing{
+  0%{ transform: scale(.5); opacity: .65; }
+  100%{ transform: scale(1.9); opacity: 0; }
+}
+
+/* flash a stat card briefly when its number is refreshed from the live listener */
+@keyframes flashUpdate{
+  0%{ box-shadow: 0 0 0 0 var(--glow-sage), var(--shadow-sm); }
+  45%{ box-shadow: 0 0 0 5px rgba(38,133,74,0), var(--shadow-sm); }
+  100%{ box-shadow: 0 0 0 0 rgba(38,133,74,0), var(--shadow-sm); }
+}
+.stat-card.flash-update{ animation: flashUpdate .85s var(--ease), cardEnter .5s var(--ease) both; }
+
+/* notification badge gets a heartbeat so it reads as "live", not static */
+.notif-badge:not(.hidden){ animation: badgeBeat 2.4s var(--ease) infinite; }
+@keyframes badgeBeat{
+  0%, 100%{ transform: scale(1); }
+  10%{ transform: scale(1.18); }
+  20%{ transform: scale(1); }
+}
+
+/* sync dot glows a touch brighter while actively saving */
+.sync-indicator.saving .sync-dot{ box-shadow: 0 0 0 3px rgba(217,142,63,.22); }
+
+/* donut + health ring settle in on load rather than snapping to place */
+.donut-chart, .health-ring{ animation: ringPop .55s var(--spring) both; }
+@keyframes ringPop{ from{ opacity: 0; transform: scale(.85); } to{ opacity: 1; transform: scale(1); } }
+
+/* ---------------- Buttons: shimmer sweep + tactile hover ---------------- */
+.primary-btn, .secondary-btn, .danger-btn{
+  transition: transform .18s var(--spring), box-shadow .22s var(--ease), background .18s var(--ease), border-color .18s var(--ease);
+}
+.primary-btn::after, .secondary-btn::after, .danger-btn::after{
+  content: "";
+  position: absolute; top: 0; left: -60%;
+  width: 45%; height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,.4), transparent);
+  transform: skewX(-18deg);
+  transition: left .55s var(--ease);
+  pointer-events: none;
+}
+.primary-btn:hover::after, .secondary-btn:hover::after, .danger-btn:hover::after{ left: 130%; }
+.primary-btn:hover{ transform: translateY(-1.5px); }
+.icon-btn{ transition: transform .22s var(--spring), background .16s var(--ease), border-color .16s var(--ease); }
+.icon-btn:hover{ transform: translateY(-1.5px) scale(1.04); }
+
+/* nav links get a tiny nudge so the sidebar feels responsive */
+.nav-link{ transition: background .16s var(--ease), color .16s var(--ease), transform .16s var(--ease); }
+.nav-link:hover{ transform: translateX(2px); }
+.nav-link .nav-icon{ transition: transform .22s var(--spring); }
+.nav-link:hover .nav-icon{ transform: scale(1.12); }
+
+/* ---------------- Panels: subtle depth on the whole surface ---------------- */
+.panel{ transition: box-shadow .28s var(--ease), border-color .28s var(--ease); }
+.panel:hover{ box-shadow: var(--shadow-md); }
+
+/* auth card: soften the entrance instead of appearing instantly */
+.auth-card{ animation: authIn .5s var(--ease) both; }
+@keyframes authIn{ from{ opacity: 0; transform: translateY(10px) scale(.985); } to{ opacity: 1; transform: translateY(0) scale(1); } }
+
+/* ---------------- Custom scrollbars for a more finished feel ---------------- */
+.table-scroll::-webkit-scrollbar, .tabs::-webkit-scrollbar{ height: 6px; width: 6px; }
+.table-scroll::-webkit-scrollbar-track, .tabs::-webkit-scrollbar-track{ background: transparent; }
+.table-scroll::-webkit-scrollbar-thumb, .tabs::-webkit-scrollbar-thumb{ background: var(--line); border-radius: 99px; }
+.table-scroll::-webkit-scrollbar-thumb:hover, .tabs::-webkit-scrollbar-thumb:hover{ background: var(--sage); }
+
+/* ---------------- Perf & accessibility guardrails ---------------- */
+@media (prefers-reduced-motion: reduce){
+  .stat-card, .quick-action-card, .report-card, .contact-card,
+  .stat-card::after, .quick-action-card::after, .report-card::after, .contact-card::after,
+  .card-arrow, .notif-badge, .live-dot::after, .donut-chart, .health-ring,
+  .primary-btn::after, .secondary-btn::after, .danger-btn::after,
+  .stat-grid > *, .quick-actions-grid > *, .contact-grid > *, .report-grid > *, .donut-legend > li,
+  .data-table tbody tr, .auth-card{
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+@media (hover: none){
+  /* touch devices: skip the spotlight tracking, keep the lift on tap */
+  .stat-card::after, .quick-action-card::after, .report-card::after, .contact-card::after{ display: none; }
+}

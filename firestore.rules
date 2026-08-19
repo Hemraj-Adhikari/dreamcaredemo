@@ -1,0 +1,23 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // The portal signs every visitor in anonymously (see js/app.js) purely so
+    // Firestore has a request.auth to check — the "admin / admin" screen in
+    // the UI is a demo-only gate, not real Firebase Auth. For a production
+    // rollout, replace this with real accounts (email/password or SSO) and
+    // check custom claims / a users/{uid} role doc here instead.
+    function isSignedIn() { return request.auth != null; }
+
+    match /employees/{employeeId} {
+      allow read, create, update, delete: if isSignedIn();
+    }
+
+    // Audit log: anyone signed in can write an entry; nobody may edit or
+    // delete past entries, so the trail stays trustworthy.
+    match /auditLogs/{entryId} {
+      allow read, create: if isSignedIn();
+      allow update, delete: if false;
+    }
+  }
+}

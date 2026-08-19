@@ -1,0 +1,11 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    match /documents/{employeeId}/{fileName} {
+      allow read, write: if request.auth != null;
+      // Tip: for stricter control, mirror a Firestore role check here
+      // (requires the Blaze plan), or move uploads through a Cloud Function
+      // that checks the caller's role server-side.
+    }
+  }
+}
