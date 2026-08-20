@@ -199,7 +199,7 @@ function refreshActiveView() {
   else if (currentView === "employees") renderEmployeesTable({ skeleton: false });
   else if (currentView === "documents") renderAllDocumentsView({ skeleton: false });
   else if (currentView === "contacts") renderContactsView({ skeleton: false });
-  else if (currentView === "reports" && activeReportType) runReport(activeReportType, { skeleton: false });
+  else if (currentView === "reports") { renderReportsOverview(); if (activeReportType) runReport(activeReportType, { skeleton: false }); }
   else if (currentView === "employee-detail" && currentEmployeeId) {
     const emp = employeesCache.find((e) => e.id === currentEmployeeId);
     if (emp) { renderDocumentsTable(emp); renderTrainingTable(emp); }
@@ -330,6 +330,7 @@ async function showView(name) {
     document.getElementById("export-csv-btn").classList.add("hidden");
     document.querySelectorAll(".report-card").forEach((c) => c.classList.remove("active"));
     activeReportType = null;
+    renderReportsOverview();
   }
 }
 
@@ -1037,17 +1038,9 @@ document.querySelectorAll(".report-card").forEach((btn) => {
 let currentReportRows = [];
 let currentReportHeaders = [];
 
-async function runReport(type, { skeleton = true } = {}) {
-  const titleEl = document.getElementById("report-title");
-  const table = document.getElementById("report-table");
-  document.getElementById("export-csv-btn").classList.add("hidden");
-  if (skeleton) {
-    titleEl.textContent = "Loading report…";
-    table.innerHTML = `<tbody>${Array.from({ length: 3 }).map(() => `<tr class="skeleton-row"><td><div class="skeleton-line" style="width:70%"></div></td><td><div class="skeleton-line" style="width:50%"></div></td><td><div class="skeleton-line" style="width:60%"></div></td></tr>`).join("")}</tbody>`;
-    await wait(220);
-  }
-  document.getElementById("export-csv-btn").classList.remove("hidden");
+const REPORT_TYPES = ["visa90", "missingDocs", "sponsored", "rtwStatus", "staffList"];
 
+function buildReport(type) {
   const builders = {
     visa90: () => ({
       title: "Visa expiry within 90 days",
@@ -1082,15 +1075,99 @@ async function runReport(type, { skeleton = true } = {}) {
       rows: employeesCache.map((e) => [e.fullName, e.employeeId, e.department, e.jobTitle, e.status, e.startDate]),
     }),
   };
+  return builders[type]();
+}
 
-  const { title, headers, rows } = builders[type]();
+/* small colour-coded read-outs for report cells — pill + (for "Days left") a mini bar */
+function pillHtml(variant, label) {
+  return `<span class="pill ${variant}">${escapeHtml(label)}</span>`;
+}
+function daysLeftCell(days) {
+  if (days === null || days === undefined || Number.isNaN(days)) return "—";
+  const overdue = days < 0;
+  const variant = overdue ? "bad" : days <= 30 ? "warn" : "ok";
+  const label = overdue ? `${Math.abs(days)}d overdue` : `${days}d left`;
+  const pct = overdue ? 100 : Math.round(((90 - Math.max(0, Math.min(90, days))) / 90) * 100);
+  return `<span class="days-cell">${pillHtml(variant, label)}<span class="mini-bar"><span class="mini-bar-fill ${variant}" style="width:${pct}%"></span></span></span>`;
+}
+function rtwStatusCell(status) {
+  const map = { OK: ["ok", "OK"], "Due soon": ["warn", "Due soon"], Expired: ["bad", "Expired"] };
+  const [variant, label] = map[status] || ["neutral", status || "—"];
+  return pillHtml(variant, label);
+}
+function employeeStatusCell(status) {
+  const map = { active: ["ok", "Active"], probation: ["warn", "Probation"], leaver: ["bad", "Leaver"] };
+  const [variant, label] = map[status] || ["neutral", status || "—"];
+  return pillHtml(variant, label);
+}
+function missingCell(missingStr) {
+  if (!missingStr) return pillHtml("ok", "Complete");
+  return `<span class="pill bad">${escapeHtml(missingStr)}</span>`;
+}
+
+const REPORT_CELL_FORMATTERS = {
+  visa90: { "Days left": daysLeftCell },
+  missingDocs: { Missing: missingCell },
+  rtwStatus: { Status: rtwStatusCell },
+  staffList: { Status: employeeStatusCell },
+};
+
+/* "Compliance at a glance" strip + live counts on each report card —
+   populated as soon as staff data loads, no click needed. */
+function renderReportsOverview() {
+  const grid = document.getElementById("reports-stat-grid");
+  if (!grid) return;
+  const total = employeesCache.length;
+  const sponsored = employeesCache.filter((e) => e.cosNumber).length;
+  const expiring = collectExpiryItems();
+  const overdue = expiring.filter((i) => i.days < 0).length;
+
+  const CARDS = [
+    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records" },
+    { cls: "", icon: "var(--icon-idcard)", target: sponsored, label: "Sponsored workers" },
+    { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days" },
+    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue" },
+  ];
+  grid.innerHTML = CARDS.map((c) => `
+    <div class="stat-card ${c.cls}">
+      <div class="stat-card-top">
+        <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+      </div>
+      <div class="num" data-target="${c.target}">0</div>
+      <div class="label">${c.label}</div>
+    </div>`).join("");
+  grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
+
+  document.querySelectorAll(".report-card").forEach((btn) => {
+    const type = btn.dataset.report;
+    const countEl = btn.querySelector(".report-card-count");
+    if (countEl && REPORT_TYPES.includes(type)) countEl.textContent = buildReport(type).rows.length;
+  });
+}
+
+async function runReport(type, { skeleton = true } = {}) {
+  const titleEl = document.getElementById("report-title");
+  const table = document.getElementById("report-table");
+  document.getElementById("export-csv-btn").classList.add("hidden");
+  if (skeleton) {
+    titleEl.textContent = "Loading report…";
+    table.innerHTML = `<tbody>${Array.from({ length: 3 }).map(() => `<tr class="skeleton-row"><td><div class="skeleton-line" style="width:70%"></div></td><td><div class="skeleton-line" style="width:50%"></div></td><td><div class="skeleton-line" style="width:60%"></div></td></tr>`).join("")}</tbody>`;
+    await wait(220);
+  }
+  document.getElementById("export-csv-btn").classList.remove("hidden");
+
+  const { title, headers, rows } = buildReport(type);
+  const formatters = REPORT_CELL_FORMATTERS[type] || {};
   titleEl.textContent = title;
   currentReportHeaders = headers;
   currentReportRows = rows;
   table.querySelector("thead")?.remove();
   table.innerHTML = `<thead><tr>${headers.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${
     rows.length
-      ? rows.map((r, idx) => `<tr style="animation-delay:${idx * 20}ms">${r.map((c) => `<td>${escapeHtml(c ?? "—")}</td>`).join("")}</tr>`).join("")
+      ? rows.map((r, idx) => `<tr style="animation-delay:${idx * 20}ms">${r.map((c, ci) => {
+          const fmt = formatters[headers[ci]];
+          return `<td>${fmt ? fmt(c) : escapeHtml(c ?? "—")}</td>`;
+        }).join("")}</tr>`).join("")
       : `<tr><td colspan="${headers.length}" class="empty-note">No matching records.</td></tr>`
   }</tbody>`;
   if (skeleton) showToast("info", `${title}: ${rows.length} record${rows.length === 1 ? "" : "s"} found.`, 2400);
