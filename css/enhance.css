@@ -228,3 +228,139 @@
   /* touch devices: skip the spotlight tracking, keep the lift on tap */
   .stat-card::after, .quick-action-card::after, .report-card::after, .contact-card::after{ display: none; }
 }
+
+/* ============================================================
+   LOGIN PAGE — visible logo + richer left panel
+   ============================================================ */
+
+/* the base stylesheet turned this white-on-white (invisible on the
+   paper background) — show the real, coloured logo instead */
+.auth-logo{
+  height: 38px;
+  width: auto;
+  max-width: 220px;
+  filter: none;
+  opacity: 1;
+  margin-bottom: 22px;
+  animation: logoPop .5s var(--spring) both;
+}
+@keyframes logoPop{ from{ opacity: 0; transform: translateY(-6px) scale(.92); } to{ opacity: 1; transform: translateY(0) scale(1); } }
+
+/* small icon lockup at the top of the green panel */
+.auth-left-logo{
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.auth-left-logo-mark{
+  height: 32px;
+  width: auto;
+  filter: brightness(0) invert(1);
+  opacity: .96;
+}
+.auth-left-logo-text{
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 14px;
+  line-height: 1.15;
+  color: #fff;
+  text-shadow: 0 1px 4px rgba(0,0,0,.2);
+}
+
+/* faint dotted leaf-texture across the green panel so it doesn't read as a flat block */
+.auth-left-pattern{
+  position: absolute;
+  inset: 0;
+  opacity: .10;
+  pointer-events: none;
+  background-image: radial-gradient(circle, #cfe28c 1.5px, transparent 1.6px);
+  background-size: 22px 22px;
+  mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 72%);
+  -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 72%);
+}
+
+/* small colour accent under the auth features list */
+.auth-features li{ position: relative; }
+.auth-features li:hover .feature-mark{ background: rgba(255,255,255,.24); transform: scale(1.06); }
+.feature-mark{ transition: background .2s var(--ease), transform .2s var(--spring); }
+
+/* thin gradient accent bar above "Welcome back" for a touch of colour on the white side */
+.auth-eyebrow{
+  position: relative;
+  padding-left: 14px;
+}
+.auth-eyebrow::before{
+  content: "";
+  position: absolute;
+  left: 0; top: 50%;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--sage), var(--amber));
+  transform: translateY(-50%);
+}
+
+.auth-right{ position: relative; }
+.auth-card{ position: relative; }
+
+/* ============================================================
+   SIDEBAR — colour, depth, and a livelier hover/active state
+   ============================================================ */
+
+.sidebar{
+  background: linear-gradient(180deg, var(--sage-lighter) 0%, var(--paper) 220px);
+  border-right: 1px solid var(--line-soft);
+}
+
+.brand-logo{
+  background: linear-gradient(155deg, var(--sage) 0%, var(--sage-deep) 100%);
+  box-shadow: 0 4px 14px -4px var(--glow-sage);
+}
+.brand-logo img{
+  width: 20px;
+  height: 20px;
+  filter: brightness(0) invert(1);
+}
+.brand-name{
+  font-family: var(--font-display);
+  background: linear-gradient(120deg, var(--sage-deep), var(--teal));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nav-indicator{
+  background: linear-gradient(180deg, var(--sage), var(--amber));
+  box-shadow: 0 0 10px var(--glow-sage);
+}
+
+.nav-link{
+  border-radius: var(--radius-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background .18s var(--ease), color .18s var(--ease), transform .16s var(--ease), letter-spacing .18s var(--ease), padding-left .18s var(--ease);
+}
+.nav-link:hover{
+  background: var(--sage-light);
+  color: var(--sage-deep);
+  letter-spacing: .012em;
+  padding-left: 16px;
+}
+.nav-link.active{
+  background: linear-gradient(90deg, var(--sage-light) 0%, rgba(38,133,74,.06) 100%);
+  color: var(--sage-deep);
+  font-weight: 700;
+  box-shadow: inset 0 0 0 1px rgba(38,133,74,.14);
+}
+.nav-link .nav-icon{ transition: transform .22s var(--spring), color .18s var(--ease); }
+.nav-link:hover .nav-icon,
+.nav-link.active .nav-icon{ color: var(--sage-deep); }
+
+.sidebar-footer{ border-top: 1px solid var(--line-soft); }
+.sync-indicator{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; }
+#logout-btn{ font-weight: 700; }
+#logout-btn:hover{ color: var(--danger); }
+
+@media (max-width: 880px){
+  .sidebar{ background: var(--paper); }
+}
