@@ -518,13 +518,13 @@ async function renderDashboard({ skeleton = true } = {}) {
   const overdue = expiring.filter((i) => i.days < 0).length;
 
   const STAT_CARDS = [
-    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records", sub: "All active staff" },
-    { cls: "", icon: "var(--icon-idcard)", target: sponsored, label: "Sponsored workers", sub: "Currently sponsored" },
-    { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days", sub: "Action required" },
-    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue", sub: "Immediate attention" },
+    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records", sub: "All active staff", nav: () => showView("employees") },
+    { cls: "", icon: "var(--icon-idcard)", target: sponsored, label: "Sponsored workers", sub: "Currently sponsored", nav: () => openReport("sponsored") },
+    { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days", sub: "Action required", nav: () => openReport("visa90") },
+    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue", sub: "Immediate attention", nav: () => openReport("visa90") },
   ];
   document.getElementById("stat-grid").innerHTML = STAT_CARDS.map((c) => `
-    <div class="stat-card ${c.cls}">
+    <div class="stat-card clickable ${c.cls}" role="button" tabindex="0">
       <div class="stat-card-top">
         <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
         <span class="trend-badge"><span class="icon-mask" aria-hidden="true"></span></span>
@@ -534,6 +534,12 @@ async function renderDashboard({ skeleton = true } = {}) {
       <div class="sublabel">${c.sub}</div>
     </div>`).join("");
   document.querySelectorAll("#stat-grid .num").forEach((el) => animateCount(el, Number(el.dataset.target)));
+  document.querySelectorAll("#stat-grid .stat-card").forEach((card, idx) => {
+    card.addEventListener("click", () => STAT_CARDS[idx].nav());
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); STAT_CARDS[idx].nav(); }
+    });
+  });
 
   renderComplianceOverview();
 
@@ -1123,13 +1129,13 @@ function renderReportsOverview() {
   const overdue = expiring.filter((i) => i.days < 0).length;
 
   const CARDS = [
-    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records" },
-    { cls: "", icon: "var(--icon-idcard)", target: sponsored, label: "Sponsored workers" },
-    { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days" },
-    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue" },
+    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records", nav: () => showView("employees") },
+    { cls: "", icon: "var(--icon-idcard)", target: sponsored, label: "Sponsored workers", nav: () => openReport("sponsored") },
+    { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days", nav: () => openReport("visa90") },
+    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue", nav: () => openReport("visa90") },
   ];
   grid.innerHTML = CARDS.map((c) => `
-    <div class="stat-card ${c.cls}">
+    <div class="stat-card clickable ${c.cls}" role="button" tabindex="0">
       <div class="stat-card-top">
         <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
       </div>
@@ -1137,12 +1143,29 @@ function renderReportsOverview() {
       <div class="label">${c.label}</div>
     </div>`).join("");
   grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
+  grid.querySelectorAll(".stat-card").forEach((card, idx) => {
+    card.addEventListener("click", () => CARDS[idx].nav());
+    card.addEventListener("keydown", (e) => {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); CARDS[idx].nav(); }
+    });
+  });
 
   document.querySelectorAll(".report-card").forEach((btn) => {
     const type = btn.dataset.report;
     const countEl = btn.querySelector(".report-card-count");
     if (countEl && REPORT_TYPES.includes(type)) countEl.textContent = buildReport(type).rows.length;
   });
+
+  if (window.renderReportCharts) window.renderReportCharts();
+}
+
+/* Jump straight to the Reports view with a specific report already selected & run. */
+function openReport(type) {
+  showView("reports");
+  setTimeout(() => {
+    const card = document.querySelector(`.report-card[data-report="${type}"]`);
+    if (card) card.click();
+  }, 60);
 }
 
 async function runReport(type, { skeleton = true } = {}) {
@@ -1170,7 +1193,22 @@ async function runReport(type, { skeleton = true } = {}) {
         }).join("")}</tr>`).join("")
       : `<tr><td colspan="${headers.length}" class="empty-note">No matching records.</td></tr>`
   }</tbody>`;
-  if (skeleton) showToast("info", `${title}: ${rows.length} record${rows.length === 1 ? "" : "s"} found.`, 2400);
+  if (skeleton) {
+    showToast("info", `${title}: ${rows.length} record${rows.length === 1 ? "" : "s"} found.`, 2400);
+    logReportRun(type, title, rows);
+  }
+}
+
+/* ---------------- Recent reports (in-memory, this session) ---------------- */
+const reportRunLog = [];
+function logReportRun(type, title, rows) {
+  const problemTypes = ["visa90", "missingDocs"];
+  let needsAttention = false;
+  if (problemTypes.includes(type)) needsAttention = rows.length > 0;
+  else if (type === "rtwStatus") needsAttention = rows.some((r) => r[4] && r[4] !== "OK");
+  reportRunLog.unshift({ date: new Date(), title, needsAttention });
+  if (reportRunLog.length > 8) reportRunLog.length = 8;
+  if (window.renderReportCharts) window.renderReportCharts();
 }
 
 document.getElementById("export-csv-btn").addEventListener("click", () => {
@@ -1185,4 +1223,23 @@ document.getElementById("export-csv-btn").addEventListener("click", () => {
   a.click();
   URL.revokeObjectURL(url);
   showToast("success", "CSV exported.");
+  if (activeReportType) {
+    const idx = reportRunLog.findIndex((r) => r.title === document.getElementById("report-title").textContent);
+    if (idx > -1) reportRunLog[idx].date = new Date();
+    if (window.renderReportCharts) window.renderReportCharts();
+  }
 });
+
+/* ---------------- Bridge for js/reports-charts.js (read-only access to live app state) ---------------- */
+window.__dcApp = {
+  get employeesCache() { return employeesCache; },
+  get auditEntries() { return auditEntries; },
+  get reportRunLog() { return reportRunLog; },
+  collectAllTrackedItems,
+  collectExpiryItems,
+  daysUntil,
+  todayStr,
+  escapeHtml,
+  showView,
+  openReport,
+};
