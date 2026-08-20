@@ -315,63 +315,67 @@
 }
 
 /* ============================================================
-   SIDEBAR — colour, depth, and a livelier hover/active state
+   SIDEBAR — dark DCH-green panel with a solid active pill,
+   in the spirit of the R2U reference but on brand colours
    ============================================================ */
 
 .sidebar{
-  background: linear-gradient(180deg, var(--sage-lighter) 0%, var(--paper) 220px);
-  border-right: 1px solid var(--line-soft);
+  background: linear-gradient(180deg, var(--sage-deep) 0%, #12291c 100%);
+  border-right: none;
+  box-shadow: 4px 0 24px -12px rgba(0,0,0,.35);
 }
 
+.brand{ padding-bottom: 26px; margin-bottom: 4px; border-bottom: 1px solid rgba(255,255,255,.08); }
 .brand-logo{
-  background: linear-gradient(155deg, var(--sage) 0%, var(--sage-deep) 100%);
-  box-shadow: 0 4px 14px -4px var(--glow-sage);
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 4px 14px -4px rgba(0,0,0,.35);
 }
 .brand-logo img{
-  width: 20px;
-  height: 20px;
-  filter: brightness(0) invert(1);
+  width: 22px;
+  height: 22px;
+  filter: none;
 }
 .brand-name{
   font-family: var(--font-display);
-  background: linear-gradient(120deg, var(--sage-deep), var(--teal));
-  -webkit-background-clip: text;
-  background-clip: text;
-  color: transparent;
+  color: #fff;
+  text-shadow: none;
+  -webkit-text-fill-color: currentColor;
 }
 
-.nav-indicator{
-  background: linear-gradient(180deg, var(--sage), var(--amber));
-  box-shadow: 0 0 10px var(--glow-sage);
-}
+.nav-indicator{ display: none; }
 
 .nav-link{
   border-radius: var(--radius-sm);
   font-weight: 500;
   letter-spacing: 0;
-  transition: background .18s var(--ease), color .18s var(--ease), transform .16s var(--ease), letter-spacing .18s var(--ease), padding-left .18s var(--ease);
+  color: rgba(233, 240, 234, .68);
+  transition: background .18s var(--ease), color .18s var(--ease), transform .16s var(--ease), padding-left .18s var(--ease);
 }
 .nav-link:hover{
-  background: var(--sage-light);
-  color: var(--sage-deep);
-  letter-spacing: .012em;
+  background: rgba(255,255,255,.08);
+  color: #fff;
   padding-left: 16px;
 }
 .nav-link.active{
-  background: linear-gradient(90deg, var(--sage-light) 0%, rgba(38,133,74,.06) 100%);
-  color: var(--sage-deep);
+  background: linear-gradient(135deg, var(--amber) 0%, #c47e34 100%);
+  color: #1a1608;
   font-weight: 700;
-  box-shadow: inset 0 0 0 1px rgba(38,133,74,.14);
+  box-shadow: 0 6px 16px -6px rgba(217,142,63,.55);
 }
 .nav-link .nav-icon{ transition: transform .22s var(--spring), color .18s var(--ease); }
-.nav-link:hover .nav-icon,
-.nav-link.active .nav-icon{ color: var(--sage-deep); }
+.nav-link .nav-icon::before{ opacity: .85; }
+.nav-link:hover .nav-icon::before{ opacity: 1; }
+.nav-link.active .nav-icon::before{ opacity: 1; }
 
-.sidebar-footer{ border-top: 1px solid var(--line-soft); }
-.sync-indicator{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; }
-#logout-btn{ font-weight: 700; }
-#logout-btn:hover{ color: var(--danger); }
+.sidebar-footer{ border-top: 1px solid rgba(255,255,255,.1); }
+.sync-indicator{ font-family: var(--font-mono); font-size: 11px; letter-spacing: .02em; color: rgba(233,240,234,.6); }
+.sync-dot{ background: #8fe3ac; }
+.sync-dot-ring{ border-color: #8fe3ac; }
+#current-user{ color: rgba(233,240,234,.85); }
+#logout-btn{ font-weight: 700; color: rgba(233,240,234,.75); }
+#logout-btn:hover{ color: var(--amber); }
 
 @media (max-width: 880px){
-  .sidebar{ background: var(--paper); }
+  .sidebar{ background: linear-gradient(180deg, var(--sage-deep) 0%, #12291c 100%); }
+  .brand{ border-bottom: none; }
 }
