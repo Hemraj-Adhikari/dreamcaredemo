@@ -11,6 +11,7 @@
 <link rel="stylesheet" href="css/dashboard.css" />
 <link rel="stylesheet" href="css/enhance.css" />
 <link rel="stylesheet" href="css/reports-charts.css" />
+<link rel="stylesheet" href="css/reports-polish.css" />
 </head>
 <body>
 
@@ -364,9 +365,26 @@
 
     <!-- REPORTS -->
     <section id="view-reports" class="view hidden">
-      <header class="view-header">
-        <h2>Reports</h2>
-        <p>Compliance snapshots you can export to CSV.</p>
+      <header class="view-header dashboard-header">
+        <div class="dashboard-header-text">
+          <h2>Reports</h2>
+          <p>Analyse and track compliance performance.</p>
+        </div>
+        <div class="dashboard-header-actions">
+          <div class="date-pill">
+            <span class="date-pill-icon icon-mask" aria-hidden="true"></span>
+            <div>
+              <div class="date-pill-date" id="reports-date"></div>
+              <div class="date-pill-sub">Compliance snapshots you can export</div>
+            </div>
+          </div>
+          <button type="button" class="primary-btn" id="reports-export-btn"><span class="icon-mask" aria-hidden="true"></span>Export to CSV</button>
+          <button type="button" class="icon-btn" id="reports-bell-btn" aria-label="Notifications">
+            <span class="icon-mask" aria-hidden="true"></span>
+            <span class="notif-badge hidden" id="reports-notif-badge">0</span>
+          </button>
+          <div class="topbar-avatar" id="reports-avatar">--</div>
+        </div>
       </header>
 
       <div class="panel reports-summary-panel">
@@ -393,25 +411,37 @@
         </div>
       </div>
 
-      <div class="report-charts-grid report-charts-grid-2">
-        <div class="panel">
+      <div class="report-charts-grid map-grid">
+        <div class="panel map-panel">
           <div class="panel-header">
-            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-shield)"></span>Sponsored workers — risk level<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-shield)"></span>Sponsored Workers Location Distribution<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
           </div>
           <div id="risk-distribution"></div>
+          <p class="map-caption">Illustrative regional split — Dreams Care Homes does not currently store per-worker location data, so dots represent the live low/medium/high visa-risk mix from staff records, placed against common sponsor regions.</p>
         </div>
-        <div class="panel">
-          <div class="panel-header">
-            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-people)"></span>Staff demographics</h3>
-          </div>
-          <div class="donut-wrap" id="demographics-wrap">
-            <div class="donut-chart" id="demographics-donut">
-              <div class="donut-center">
-                <div class="donut-total" id="demographics-total">0</div>
-                <div class="donut-total-label">Total staff</div>
-              </div>
+        <div class="map-side-col">
+          <div class="panel controls-panel">
+            <div class="panel-header">
+              <h3>Dashboard Controls</h3>
             </div>
-            <ul class="donut-legend" id="demographics-legend"></ul>
+            <div class="controls-toggle" id="map-mode-toggle">
+              <button type="button" class="controls-toggle-btn active" data-mode="live">Real-time</button>
+              <button type="button" class="controls-toggle-btn" data-mode="historical">Historical</button>
+            </div>
+          </div>
+          <div class="panel demographics-panel">
+            <div class="panel-header">
+              <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-people)"></span>Staff demographics</h3>
+            </div>
+            <div class="donut-wrap" id="demographics-wrap">
+              <div class="donut-chart" id="demographics-donut">
+                <div class="donut-center">
+                  <div class="donut-total" id="demographics-total">0</div>
+                  <div class="donut-total-label">Total staff</div>
+                </div>
+              </div>
+              <ul class="donut-legend" id="demographics-legend"></ul>
+            </div>
           </div>
         </div>
       </div>
@@ -421,6 +451,7 @@
           <div class="panel-header">
             <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-warndoc)"></span>Missing documents by type</h3>
           </div>
+          <ul class="chart-legend" id="missing-doc-legend"></ul>
           <div id="missing-doc-chart"></div>
         </div>
         <div class="panel">
@@ -429,7 +460,7 @@
           </div>
           <div class="table-scroll">
             <table class="data-table" id="recent-reports-table">
-              <thead><tr><th>Date</th><th>Report</th><th>Status</th></tr></thead>
+              <thead><tr><th>Date</th><th>Report</th><th>Status</th><th>Quick actions</th></tr></thead>
               <tbody></tbody>
             </table>
           </div>
@@ -455,6 +486,11 @@
             <tbody></tbody>
           </table>
         </div>
+      </div>
+
+      <div class="panel quick-actions-panel">
+        <h3><span class="panel-icon icon-mask" aria-hidden="true"></span>Quick actions</h3>
+        <div class="quick-actions-grid quick-actions-grid-5" id="reports-quick-actions-grid"></div>
       </div>
     </section>
 
