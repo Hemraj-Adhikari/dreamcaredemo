@@ -230,65 +230,64 @@
 }
 
 /* ============================================================
-   LOGIN PAGE — visible logo + richer left panel
+   LOGIN PAGE — simple centered layout (Route 2 Uni style),
+   Dreams Care Homes colours kept as-is
    ============================================================ */
 
-/* the base stylesheet turned this white-on-white (invisible on the
-   paper background) — show the real, coloured logo instead */
-.auth-logo{
-  height: 38px;
-  width: auto;
-  max-width: 220px;
-  filter: none;
-  opacity: 1;
-  margin-bottom: 22px;
-  animation: logoPop .5s var(--spring) both;
-}
+.auth-card{ min-height: 520px; }
+
 @keyframes logoPop{ from{ opacity: 0; transform: translateY(-6px) scale(.92); } to{ opacity: 1; transform: translateY(0) scale(1); } }
 
-/* small icon lockup at the top of the green panel */
-.auth-left-logo{
+/* LEFT: plain light panel, logo centered, matches DCH palette */
+.auth-left-simple{
+  background: linear-gradient(180deg, var(--sage-lighter) 0%, #EFF5F0 100%);
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 4px;
-}
-.auth-left-logo-mark{
-  height: 32px;
-  width: auto;
-  filter: brightness(0) invert(1);
-  opacity: .96;
-}
-.auth-left-logo-text{
-  font-family: var(--font-display);
-  font-weight: 600;
-  font-size: 14px;
-  line-height: 1.15;
-  color: #fff;
-  text-shadow: 0 1px 4px rgba(0,0,0,.2);
-}
-
-/* faint dotted leaf-texture across the green panel so it doesn't read as a flat block */
-.auth-left-pattern{
-  position: absolute;
-  inset: 0;
-  opacity: .10;
-  pointer-events: none;
-  background-image: radial-gradient(circle, #cfe28c 1.5px, transparent 1.6px);
-  background-size: 22px 22px;
-  mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 72%);
-  -webkit-mask-image: radial-gradient(circle at 30% 40%, #000 0%, transparent 72%);
-}
-
-/* small colour accent under the auth features list */
-.auth-features li{ position: relative; }
-.auth-features li:hover .feature-mark{ background: rgba(255,255,255,.24); transform: scale(1.06); }
-.feature-mark{ transition: background .2s var(--ease), transform .2s var(--spring); }
-
-/* thin gradient accent bar above "Welcome back" for a touch of colour on the white side */
-.auth-eyebrow{
+  justify-content: center;
+  padding: 44px;
   position: relative;
+  overflow: hidden;
+}
+.auth-left-simple::before{
+  content: "";
+  position: absolute;
+  width: 480px; height: 480px;
+  left: 50%; top: 50%;
+  transform: translate(-50%, -50%);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(38,133,74,.08) 0%, transparent 68%);
+  pointer-events: none;
+}
+.auth-left-center{
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  text-align: center;
+  animation: logoPop .55s var(--spring) both;
+}
+.auth-left-full-logo{
+  height: 84px;
+  width: auto;
+  max-width: 78%;
+}
+.auth-left-caption{
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: .06em;
+  color: var(--ink-faint);
+}
+
+/* RIGHT: centered heading block, DCH green/amber accents unchanged */
+.auth-right{
+  align-items: center;
+  text-align: center;
+  padding: 56px 56px;
+}
+.auth-eyebrow{
   padding-left: 14px;
+  position: relative;
 }
 .auth-eyebrow::before{
   content: "";
@@ -299,9 +298,21 @@
   background: linear-gradient(135deg, var(--sage), var(--amber));
   transform: translateY(-50%);
 }
+.auth-right h1{ margin-top: 8px; }
+.auth-subtitle{ max-width: 340px; margin-left: auto; margin-right: auto; }
 
-.auth-right{ position: relative; }
-.auth-card{ position: relative; }
+#login-form{
+  width: 100%;
+  max-width: 360px;
+  text-align: left;
+  margin-top: 8px;
+}
+.auth-note{ max-width: 360px; margin-left: auto; margin-right: auto; }
+
+@media (max-width: 880px){
+  .auth-left-simple{ padding: 32px; min-height: 200px; }
+  .auth-left-full-logo{ height: 56px; }
+}
 
 /* ============================================================
    SIDEBAR — colour, depth, and a livelier hover/active state
