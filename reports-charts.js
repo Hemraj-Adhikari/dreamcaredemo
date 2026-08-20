@@ -98,27 +98,89 @@ function computeSponsoredRisk(app) {
   return { total: sponsored.length, risk };
 }
 
+/* Fixed illustrative map points (common sponsor regions for UK care
+   sector recruitment). There's no per-worker location field in the
+   data model, so the live low/medium/high split is distributed across
+   these points proportionally — a stylised distribution, not literal
+   per-worker geodata. */
+const MAP_POINTS = [
+  { name: "India", x: 660, y: 175, weight: 0.24 },
+  { name: "Nigeria", x: 430, y: 210, weight: 0.20 },
+  { name: "Philippines", x: 730, y: 200, weight: 0.16 },
+  { name: "Zimbabwe", x: 465, y: 255, weight: 0.14 },
+  { name: "Nepal", x: 690, y: 165, weight: 0.12 },
+  { name: "United Kingdom", x: 400, y: 95, weight: 0.08 },
+  { name: "Ghana", x: 400, y: 220, weight: 0.06 },
+];
+
 function renderRiskDistribution(app) {
   const el = document.getElementById("risk-distribution");
   if (!el) return;
   const { total, risk } = computeSponsoredRisk(app);
+
   if (!total) {
-    el.innerHTML = `<p class="risk-empty">No sponsored workers on record yet.</p>`;
+    el.innerHTML = `<p class="risk-empty">No sponsored workers on record yet — dots will appear here once staff have a Certificate of Sponsorship.</p>`;
     return;
   }
-  const pct = (n) => Math.round((n / total) * 100);
+
+  // Spread the live risk counts across the fixed points, in proportion
+  // to each point's weight, then pick each point's dominant risk colour.
+  let low = risk.low, medium = risk.medium, high = risk.high;
+  const order = ["high", "medium", "low"]; // fill worst-risk first so it's never lost to rounding
+  const dots = MAP_POINTS.map((p) => ({ ...p, count: 0, color: RISK_COLORS.low }));
+  let remaining = total;
+  dots.forEach((d, idx) => {
+    const isLast = idx === dots.length - 1;
+    const share = isLast ? remaining : Math.round(p_weight(p_total(dots), d.weight) * total);
+    d.count = isLast ? remaining : Math.min(remaining, share);
+    remaining -= d.count;
+  });
+  // Assign each dot's dominant colour by draining from whichever bucket has the most left.
+  dots.forEach((d) => {
+    let left = d.count;
+    while (left > 0) {
+      const bucket = high > 0 ? "high" : medium > 0 ? "medium" : "low";
+      if (bucket === "high") { high--; d.color = RISK_COLORS.high; }
+      else if (bucket === "medium") { medium--; d.color = RISK_COLORS.medium; }
+      else { low--; d.color = RISK_COLORS.low; }
+      left--;
+    }
+  });
+
+  const maxCount = Math.max(1, ...dots.map((d) => d.count));
+  const worldSvg = `
+    <svg class="world-map" viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sponsored worker regional distribution">
+      <rect x="0" y="0" width="800" height="380" rx="16" class="world-ocean" />
+      <g class="world-land">
+        <path d="M70 70 C40 110 55 170 100 190 C150 215 210 190 230 150 C250 110 220 60 170 55 C130 50 95 45 70 70 Z"/>
+        <path d="M180 220 C160 260 170 320 210 350 C240 370 270 340 265 300 C260 260 250 220 220 205 C205 198 190 205 180 220 Z"/>
+        <path d="M380 60 C365 85 375 110 405 115 C430 118 445 95 435 72 C425 52 395 42 380 60 Z"/>
+        <path d="M390 130 C365 170 370 240 400 280 C425 312 470 300 480 260 C490 220 480 170 460 145 C440 120 405 112 390 130 Z"/>
+        <path d="M470 60 C460 100 500 130 560 140 C630 152 700 130 740 95 C760 76 730 45 680 42 C610 38 545 35 500 45 C485 48 474 50 470 60 Z"/>
+        <path d="M640 260 C620 280 630 310 665 318 C700 326 730 305 722 278 C714 252 665 238 640 260 Z"/>
+      </g>
+      <g class="world-dots">
+        ${dots.filter((d) => d.count > 0).map((d) => {
+          const r = 6 + (d.count / maxCount) * 16;
+          return `<g class="world-dot">
+            <circle cx="${d.x}" cy="${d.y}" r="${r}" style="fill:${d.color}" fill-opacity="0.28"/>
+            <circle cx="${d.x}" cy="${d.y}" r="${Math.max(4, r * 0.42)}" style="fill:${d.color}"/>
+            <title>${escapeHtml(d.name)}: ${d.count} sponsored worker${d.count === 1 ? "" : "s"}</title>
+          </g>`;
+        }).join("")}
+      </g>
+    </svg>`;
+
   el.innerHTML = `
-    <div class="risk-bar">
-      <span style="width:${pct(risk.low)}%;background:${RISK_COLORS.low}"></span>
-      <span style="width:${pct(risk.medium)}%;background:${RISK_COLORS.medium}"></span>
-      <span style="width:${pct(risk.high)}%;background:${RISK_COLORS.high}"></span>
-    </div>
-    <ul class="risk-legend">
-      <li><span class="dot" style="background:${RISK_COLORS.low}"></span><span class="legend-label">Low risk — visa OK &gt;90 days</span><span class="legend-value">${risk.low} (${pct(risk.low)}%)</span></li>
-      <li><span class="dot" style="background:${RISK_COLORS.medium}"></span><span class="legend-label">Medium risk — expiring ≤90 days</span><span class="legend-value">${risk.medium} (${pct(risk.medium)}%)</span></li>
-      <li><span class="dot" style="background:${RISK_COLORS.high}"></span><span class="legend-label">High risk — expired</span><span class="legend-value">${risk.high} (${pct(risk.high)}%)</span></li>
+    ${worldSvg}
+    <ul class="world-legend">
+      <li><span class="dot" style="background:${RISK_COLORS.low}"></span>Low risk</li>
+      <li><span class="dot" style="background:${RISK_COLORS.medium}"></span>Medium risk</li>
+      <li><span class="dot" style="background:${RISK_COLORS.high}"></span>High risk</li>
     </ul>`;
 }
+function p_total(dots) { return dots.reduce((s, d) => s + d.weight, 0); }
+function p_weight(total, w) { return total ? w / total : 0; }
 
 /* ---------------- Staff demographics donut ---------------- */
 const DEMOGRAPHIC_SEGMENTS = [
@@ -160,9 +222,11 @@ function renderDemographicsDonut(app) {
 
 /* ---------------- Missing documents by type ---------------- */
 const REQUIRED_DOC_TYPES = ["Passport", "Employment contract", "DBS certificate", "Proof of address"];
+const DOC_TYPE_COLORS = ["var(--sage)", "var(--amber)", "var(--danger)", "var(--ink-faint)"];
 
 function renderMissingDocChart(app) {
   const el = document.getElementById("missing-doc-chart");
+  const legendEl = document.getElementById("missing-doc-legend");
   if (!el) return;
   const staff = app.employeesCache || [];
   const counts = Object.fromEntries(REQUIRED_DOC_TYPES.map((t) => [t, 0]));
@@ -171,16 +235,22 @@ function renderMissingDocChart(app) {
     REQUIRED_DOC_TYPES.forEach((t) => { if (!have.has(t)) counts[t] += 1; });
   });
   const max = Math.max(1, ...Object.values(counts));
+
+  if (legendEl) {
+    legendEl.innerHTML = REQUIRED_DOC_TYPES.map((t, idx) =>
+      `<li><span class="dot" style="background:${DOC_TYPE_COLORS[idx]}"></span>${escapeHtml(t)}</li>`).join("");
+  }
+
   if (!staff.length) {
     el.innerHTML = `<p class="risk-empty">No staff records yet.</p>`;
     return;
   }
-  el.innerHTML = `<div class="doc-bars">${REQUIRED_DOC_TYPES.map((t) => {
+  el.innerHTML = `<div class="doc-bars">${REQUIRED_DOC_TYPES.map((t, idx) => {
     const n = counts[t];
     const pct = Math.max(n ? 4 : 0, (n / max) * 100);
     return `<div class="doc-bar-row">
       <span class="doc-bar-label">${escapeHtml(t)}</span>
-      <span class="doc-bar-track"><span class="doc-bar-fill" style="width:${pct}%"></span></span>
+      <span class="doc-bar-track"><span class="doc-bar-fill" style="width:${pct}%;background:${DOC_TYPE_COLORS[idx]}"></span></span>
       <span class="doc-bar-count">${n}</span>
     </div>`;
   }).join("")}</div>`;
@@ -193,18 +263,101 @@ function renderRecentReports(app) {
   if (!tbody) return;
   const runs = app.reportRunLog || [];
   emptyEl?.classList.toggle("hidden", runs.length > 0);
-  tbody.innerHTML = runs.map((r) => `
+  tbody.innerHTML = runs.map((r, idx) => `
     <tr>
       <td>${r.date.toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric" })}</td>
       <td>${escapeHtml(r.title)}</td>
-      <td><span class="pill ${r.needsAttention ? "bad" : "ok"}">${r.needsAttention ? "Needs attention" : "All OK"}</span></td>
+      <td><span class="pill ${r.needsAttention ? "warn" : "ok"}">${r.needsAttention ? "Needs attention" : "All OK"}</span></td>
+      <td>
+        <button type="button" class="row-icon-btn" data-recent-idx="${idx}" title="Re-run &amp; export ${escapeHtml(r.title)}">
+          <span class="icon-mask" style="--icon-url:var(--icon-chart)" aria-hidden="true"></span>
+        </button>
+        <button type="button" class="row-icon-btn" data-recent-idx="${idx}" title="Re-run &amp; export ${escapeHtml(r.title)}">
+          <span class="icon-mask" style="--icon-url:var(--icon-download)" aria-hidden="true"></span>
+        </button>
+      </td>
     </tr>`).join("");
+  tbody.querySelectorAll(".row-icon-btn").forEach((btn) => {
+    btn.addEventListener("click", () => {
+      const run = runs[Number(btn.dataset.recentIdx)];
+      if (run?.type) app.openReport(run.type);
+    });
+  });
+}
+
+/* ---------------- Reports topbar chrome (date / export / bell / avatar) ---------------- */
+function initReportsChrome() {
+  const dateEl = document.getElementById("reports-date");
+  const dashDateEl = document.getElementById("dashboard-date");
+  if (dateEl) dateEl.textContent = dashDateEl?.textContent || new Date().toLocaleDateString("en-GB", { weekday: "long", year: "numeric", month: "long", day: "numeric" });
+
+  const avatarEl = document.getElementById("reports-avatar");
+  const dashAvatarEl = document.getElementById("dashboard-avatar");
+  if (avatarEl) avatarEl.textContent = dashAvatarEl?.textContent || "--";
+
+  const badgeEl = document.getElementById("reports-notif-badge");
+  const dashBadgeEl = document.getElementById("notif-badge");
+  if (badgeEl && dashBadgeEl) {
+    badgeEl.textContent = dashBadgeEl.textContent;
+    badgeEl.classList.toggle("hidden", dashBadgeEl.classList.contains("hidden"));
+  }
+
+  const exportBtn = document.getElementById("reports-export-btn");
+  if (exportBtn && !exportBtn.dataset.bound) {
+    exportBtn.dataset.bound = "1";
+    exportBtn.addEventListener("click", () => document.getElementById("export-csv-btn")?.click());
+  }
+  const bellBtn = document.getElementById("reports-bell-btn");
+  if (bellBtn && !bellBtn.dataset.bound) {
+    bellBtn.dataset.bound = "1";
+    bellBtn.addEventListener("click", () => window.__dcApp?.showView("dashboard"));
+  }
+
+  const toggle = document.getElementById("map-mode-toggle");
+  if (toggle && !toggle.dataset.bound) {
+    toggle.dataset.bound = "1";
+    toggle.querySelectorAll(".controls-toggle-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        toggle.querySelectorAll(".controls-toggle-btn").forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+      });
+    });
+  }
+}
+
+/* ---------------- Reports quick actions row ---------------- */
+const REPORTS_QUICK_ACTIONS = [
+  { icon: "var(--icon-chart)", title: "Generate report", sub: "Download detailed reports", action: (app) => app.openReport("staffList") },
+  { icon: "var(--icon-upload2)", title: "Export data", sub: "Export to CSV or Excel", action: () => document.getElementById("export-csv-btn")?.click() },
+  { icon: "var(--icon-calendar)", title: "Schedule report", sub: "Automate & schedule", action: (app) => app.showToast("info", "Scheduled reports aren't set up yet — export a CSV for now.") },
+  { icon: "var(--icon-info)", title: "Custom report", sub: "Create custom reports", action: (app) => app.showView("reports") },
+  { icon: "var(--icon-bell)", title: "Share report", sub: "Share with team", action: (app) => app.showToast("info", "Sharing isn't wired up yet — export the CSV and send it on.") },
+];
+
+function initReportsQuickActions(app) {
+  const grid = document.getElementById("reports-quick-actions-grid");
+  if (!grid || grid.dataset.built) return;
+  grid.dataset.built = "1";
+  grid.innerHTML = REPORTS_QUICK_ACTIONS.map((a, idx) => `
+    <button type="button" class="quick-action-card" data-action-idx="${idx}">
+      <span class="quick-action-icon"><span class="icon-mask" style="--icon-url:${a.icon}" aria-hidden="true"></span></span>
+      <span>
+        <div class="quick-action-title">${escapeHtml(a.title)}</div>
+        <div class="quick-action-sub">${escapeHtml(a.sub)}</div>
+      </span>
+      <span class="card-arrow icon-mask" aria-hidden="true"></span>
+    </button>`).join("");
+  grid.querySelectorAll(".quick-action-card").forEach((btn) => {
+    btn.addEventListener("click", () => REPORTS_QUICK_ACTIONS[Number(btn.dataset.actionIdx)].action(app));
+  });
 }
 
 /* ---------------- Entry point ---------------- */
 function renderReportCharts() {
   const app = window.__dcApp;
   if (!app) return;
+  initReportsChrome();
+  initReportsQuickActions(app);
   renderQuarterChart(app);
   renderLiveFeed(app);
   renderRiskDistribution(app);
