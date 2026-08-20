@@ -12,6 +12,7 @@
 <link rel="stylesheet" href="css/enhance.css" />
 <link rel="stylesheet" href="reports-charts.css" />
 <link rel="stylesheet" href="css/reports-polish.css" />
+<link rel="stylesheet" href="css/pages-polish.css" />
 </head>
 <body>
 
@@ -166,16 +167,30 @@
 
     <!-- EMPLOYEES LIST -->
     <section id="view-employees" class="view hidden">
-      <header class="view-header">
-        <h2>Staff records</h2>
+      <header class="view-header page-header">
+        <div class="page-header-left">
+          <div class="page-icon-badge"><span class="icon-mask" aria-hidden="true" style="--icon-url:var(--icon-people)"></span></div>
+          <div class="dashboard-header-text">
+            <h2>Staff records</h2>
+            <p>All active staff, right to work and visa status at a glance.</p>
+          </div>
+        </div>
         <button class="primary-btn" id="add-employee-btn">+ Add staff member</button>
       </header>
-      <input type="text" id="employee-search" placeholder="Search by name, department or employee ID…" class="search-input" />
-      <div class="table-scroll">
-        <table class="data-table" id="employees-table">
-          <thead><tr><th>Name</th><th>Department</th><th>Job title</th><th>RTW status</th><th>Visa expiry</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table>
+
+      <div class="stat-grid" id="employees-stat-grid"></div>
+
+      <div class="panel list-panel">
+        <div class="panel-header">
+          <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-people)"></span>All staff<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+        </div>
+        <input type="text" id="employee-search" placeholder="Search by name, department or employee ID…" class="search-input" />
+        <div class="table-scroll">
+          <table class="data-table" id="employees-table">
+            <thead><tr><th>Name</th><th>Department</th><th>Job title</th><th>RTW status</th><th>Visa expiry</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
@@ -496,41 +511,80 @@
 
     <!-- STAFF DOCUMENTS (all documents from every staff record, live) -->
     <section id="view-documents" class="view hidden">
-      <header class="view-header">
-        <h2>Staff documents</h2>
-        <p>Every document uploaded across all staff records, updating live.</p>
+      <header class="view-header page-header">
+        <div class="page-header-left">
+          <div class="page-icon-badge"><span class="icon-mask" aria-hidden="true" style="--icon-url:var(--icon-file)"></span></div>
+          <div class="dashboard-header-text">
+            <h2>Staff documents</h2>
+            <p>Every document uploaded across all staff records, updating live.</p>
+          </div>
+        </div>
       </header>
-      <input type="text" id="documents-search" placeholder="Search by staff name, document type or file name…" class="search-input" />
-      <div class="table-scroll">
-        <table class="data-table" id="all-documents-table">
-          <thead><tr><th>Staff member</th><th>Document type</th><th>File</th><th>Expiry</th><th>Uploaded</th><th></th></tr></thead>
-          <tbody></tbody>
-        </table>
+
+      <div class="stat-grid" id="documents-stat-grid"></div>
+
+      <div class="panel list-panel">
+        <div class="panel-header">
+          <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-file)"></span>All documents<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+        </div>
+        <input type="text" id="documents-search" placeholder="Search by staff name, document type or file name…" class="search-input" />
+        <div class="table-scroll">
+          <table class="data-table" id="all-documents-table">
+            <thead><tr><th>Staff member</th><th>Document type</th><th>File</th><th>Expiry</th><th>Uploaded</th><th></th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
     <!-- CONTACT STAFF -->
     <section id="view-contacts" class="view hidden">
-      <header class="view-header">
-        <h2>Contact staff</h2>
-        <p>Reach any staff member directly by phone, email or WhatsApp.</p>
+      <header class="view-header page-header">
+        <div class="page-header-left">
+          <div class="page-icon-badge"><span class="icon-mask" aria-hidden="true" style="--icon-url:var(--icon-phone)"></span></div>
+          <div class="dashboard-header-text">
+            <h2>Contact staff</h2>
+            <p>Reach any staff member directly by phone, email or WhatsApp.</p>
+          </div>
+        </div>
       </header>
-      <input type="text" id="contacts-search" placeholder="Search by name, department or job title…" class="search-input" />
-      <div class="contact-grid" id="contact-grid"></div>
-      <p class="empty-note hidden" id="contacts-empty">No staff contact details yet — add a phone number or email in a staff profile.</p>
+
+      <div class="stat-grid" id="contacts-stat-grid"></div>
+
+      <div class="panel list-panel">
+        <div class="panel-header">
+          <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-phone)"></span>Directory<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+        </div>
+        <input type="text" id="contacts-search" placeholder="Search by name, department or job title…" class="search-input" />
+        <div class="contact-grid" id="contact-grid"></div>
+        <p class="empty-note hidden" id="contacts-empty">No staff contact details yet — add a phone number or email in a staff profile.</p>
+      </div>
     </section>
 
     <!-- AUDIT LOG -->
     <section id="view-audit" class="view hidden">
-      <header class="view-header">
-        <h2>Audit log</h2>
-        <p>Who viewed, edited or deleted records, and when.</p>
+      <header class="view-header page-header">
+        <div class="page-header-left">
+          <div class="page-icon-badge"><span class="icon-mask" aria-hidden="true" style="--icon-url:var(--icon-clock)"></span></div>
+          <div class="dashboard-header-text">
+            <h2>Audit log</h2>
+            <p>Who viewed, edited or deleted records, and when.</p>
+          </div>
+        </div>
       </header>
-      <div class="table-scroll">
-        <table class="data-table" id="audit-table">
-          <thead><tr><th>Date/time</th><th>User</th><th>Action</th><th>Staff record</th><th>Details</th></tr></thead>
-          <tbody></tbody>
-        </table>
+
+      <div class="stat-grid" id="audit-stat-grid"></div>
+
+      <div class="panel list-panel">
+        <div class="panel-header">
+          <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-clock)"></span>Activity history<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+        </div>
+        <div class="table-scroll">
+          <table class="data-table" id="audit-table">
+            <thead><tr><th>Date/time</th><th>User</th><th>Action</th><th>Staff record</th><th>Details</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
