@@ -10,6 +10,7 @@
 <link rel="stylesheet" href="css/style.css" />
 <link rel="stylesheet" href="css/dashboard.css" />
 <link rel="stylesheet" href="css/enhance.css" />
+<link rel="stylesheet" href="css/reports-charts.css" />
 </head>
 <body>
 
@@ -375,6 +376,67 @@
         <div class="stat-grid reports-stat-grid" id="reports-stat-grid"></div>
       </div>
 
+      <div class="report-charts-grid">
+        <div class="panel report-chart-panel">
+          <div class="panel-header">
+            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-chart)"></span>Compliance by quarter<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+          </div>
+          <ul class="chart-legend" id="quarter-legend"></ul>
+          <div class="bar-chart" id="quarter-chart"></div>
+        </div>
+        <div class="panel report-feed-panel">
+          <div class="panel-header">
+            <h3>Live activity</h3>
+          </div>
+          <ul class="live-feed" id="live-feed-list"></ul>
+          <p class="empty-note hidden" id="live-feed-empty">No activity yet — actions you take will appear here.</p>
+        </div>
+      </div>
+
+      <div class="report-charts-grid report-charts-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-shield)"></span>Sponsored workers — risk level<span class="live-chip"><span class="live-dot"></span>Live</span></h3>
+          </div>
+          <div id="risk-distribution"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-people)"></span>Staff demographics</h3>
+          </div>
+          <div class="donut-wrap" id="demographics-wrap">
+            <div class="donut-chart" id="demographics-donut">
+              <div class="donut-center">
+                <div class="donut-total" id="demographics-total">0</div>
+                <div class="donut-total-label">Total staff</div>
+              </div>
+            </div>
+            <ul class="donut-legend" id="demographics-legend"></ul>
+          </div>
+        </div>
+      </div>
+
+      <div class="report-charts-grid report-charts-grid-2">
+        <div class="panel">
+          <div class="panel-header">
+            <h3><span class="panel-icon icon-mask" aria-hidden="true" style="--icon-url:var(--icon-warndoc)"></span>Missing documents by type</h3>
+          </div>
+          <div id="missing-doc-chart"></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header">
+            <h3>Recent reports</h3>
+          </div>
+          <div class="table-scroll">
+            <table class="data-table" id="recent-reports-table">
+              <thead><tr><th>Date</th><th>Report</th><th>Status</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+          <p class="empty-note hidden" id="recent-reports-empty">No reports generated yet — run a report below to see it here.</p>
+        </div>
+      </div>
+
       <div class="report-grid">
         <button class="report-card" data-report="visa90"><span class="report-icon" data-icon="visa" aria-hidden="true"></span>Visa expiry within 90 days<span class="report-card-count" aria-hidden="true"></span><span class="card-arrow icon-mask" aria-hidden="true"></span></button>
         <button class="report-card" data-report="missingDocs"><span class="report-icon" data-icon="missing" aria-hidden="true"></span>Missing documents<span class="report-card-count" aria-hidden="true"></span><span class="card-arrow icon-mask" aria-hidden="true"></span></button>
@@ -454,5 +516,6 @@
 
 <script type="module" src="js/app.js"></script>
 <script type="module" src="js/enhance.js"></script>
+<script type="module" src="js/reports-charts.js"></script>
 </body>
 </html>
