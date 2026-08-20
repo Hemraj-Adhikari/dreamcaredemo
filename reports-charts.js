@@ -123,34 +123,33 @@ function renderRiskDistribution(app) {
     return;
   }
 
-  // Spread the live risk counts across the fixed points, in proportion
-  // to each point's weight, then pick each point's dominant risk colour.
-  let low = risk.low, medium = risk.medium, high = risk.high;
-  const order = ["high", "medium", "low"]; // fill worst-risk first so it's never lost to rounding
-  const dots = MAP_POINTS.map((p) => ({ ...p, count: 0, color: RISK_COLORS.low }));
-  let remaining = total;
-  dots.forEach((d, idx) => {
-    const isLast = idx === dots.length - 1;
-    const share = isLast ? remaining : Math.round(p_weight(p_total(dots), d.weight) * total);
-    d.count = isLast ? remaining : Math.min(remaining, share);
-    remaining -= d.count;
+  // Spread the live total across the fixed points by weight (simple
+  // largest-remainder rounding so the counts always add up to `total`).
+  const weightSum = MAP_POINTS.reduce((s, p) => s + p.weight, 0) || 1;
+  const dots = MAP_POINTS.map((p) => {
+    const raw = (p.weight / weightSum) * total;
+    return { ...p, count: Math.floor(raw), remainder: raw - Math.floor(raw) };
   });
-  // Assign each dot's dominant colour by draining from whichever bucket has the most left.
+  let allocated = dots.reduce((s, d) => s + d.count, 0);
+  dots.sort((a, b) => b.remainder - a.remainder);
+  for (let i = 0; allocated < total && i < dots.length; i++, allocated++) dots[i].count += 1;
+
+  // Colour each dot by draining the live low/medium/high buckets,
+  // worst risk first, so the colours reflect the real overall mix.
+  let [high, medium, low] = [risk.high, risk.medium, risk.low];
   dots.forEach((d) => {
-    let left = d.count;
-    while (left > 0) {
-      const bucket = high > 0 ? "high" : medium > 0 ? "medium" : "low";
-      if (bucket === "high") { high--; d.color = RISK_COLORS.high; }
-      else if (bucket === "medium") { medium--; d.color = RISK_COLORS.medium; }
-      else { low--; d.color = RISK_COLORS.low; }
-      left--;
+    for (let n = 0; n < d.count; n++) {
+      if (high > 0) { high--; d.color = RISK_COLORS.high; }
+      else if (medium > 0) { medium--; d.color = RISK_COLORS.medium; }
+      else if (low > 0) { low--; d.color = RISK_COLORS.low; }
+      else d.color = d.color || RISK_COLORS.low;
     }
   });
 
   const maxCount = Math.max(1, ...dots.map((d) => d.count));
   const worldSvg = `
     <svg class="world-map" viewBox="0 0 800 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Sponsored worker regional distribution">
-      <rect x="0" y="0" width="800" height="380" rx="16" class="world-ocean" />
+      <rect x="0" y="0" width="800" height="380" class="world-ocean" />
       <g class="world-land">
         <path d="M70 70 C40 110 55 170 100 190 C150 215 210 190 230 150 C250 110 220 60 170 55 C130 50 95 45 70 70 Z"/>
         <path d="M180 220 C160 260 170 320 210 350 C240 370 270 340 265 300 C260 260 250 220 220 205 C205 198 190 205 180 220 Z"/>
@@ -179,8 +178,6 @@ function renderRiskDistribution(app) {
       <li><span class="dot" style="background:${RISK_COLORS.high}"></span>High risk</li>
     </ul>`;
 }
-function p_total(dots) { return dots.reduce((s, d) => s + d.weight, 0); }
-function p_weight(total, w) { return total ? w / total : 0; }
 
 /* ---------------- Staff demographics donut ---------------- */
 const DEMOGRAPHIC_SEGMENTS = [
@@ -356,14 +353,23 @@ function initReportsQuickActions(app) {
 function renderReportCharts() {
   const app = window.__dcApp;
   if (!app) return;
-  initReportsChrome();
-  initReportsQuickActions(app);
-  renderQuarterChart(app);
-  renderLiveFeed(app);
-  renderRiskDistribution(app);
-  renderDemographicsDonut(app);
-  renderMissingDocChart(app);
-  renderRecentReports(app);
+  // Each section is isolated: if one throws (e.g. unexpected data shape),
+  // it's logged to the console and the rest of the page still renders,
+  // instead of one bad section blanking out every panel below it.
+  const steps = [
+    ["reports chrome", () => initReportsChrome()],
+    ["quick actions", () => initReportsQuickActions(app)],
+    ["quarter chart", () => renderQuarterChart(app)],
+    ["live feed", () => renderLiveFeed(app)],
+    ["risk distribution / map", () => renderRiskDistribution(app)],
+    ["demographics donut", () => renderDemographicsDonut(app)],
+    ["missing doc chart", () => renderMissingDocChart(app)],
+    ["recent reports", () => renderRecentReports(app)],
+  ];
+  steps.forEach(([label, fn]) => {
+    try { fn(); }
+    catch (err) { console.error(`[reports-charts] ${label} failed:`, err); }
+  });
 }
 
 window.renderReportCharts = renderReportCharts;
