@@ -384,6 +384,18 @@ function collectAllTrackedItems() {
   return items;
 }
 
+/* Small decorative wave rendered behind each stat card, echoing the
+   sparklines in the reference design. Dreams Care Homes doesn't log
+   daily snapshots of these counts yet, so this is a stylistic flourish
+   (deterministic per card) rather than a real historical trend. */
+function statSparkline(colorVar, seed = 0) {
+  const pts = Array.from({ length: 9 }, (_, i) => {
+    const y = 26 - (Math.sin((i + seed) * 1.35) * 7 + Math.sin((i + seed) * 0.55) * 5);
+    return `${i * 17.5},${y.toFixed(1)}`;
+  }).join(" ");
+  return `<svg class="stat-wave" viewBox="0 0 140 40" preserveAspectRatio="none" aria-hidden="true"><polyline points="${pts}" fill="none" style="stroke:${colorVar}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+}
+
 const DASHBOARD_QUICK_ACTIONS = [
   { icon: "var(--icon-plus)", title: "Add new staff", sub: "Create a staff record", action: () => openEmployee(null) },
   { icon: "var(--icon-upload2)", title: "Upload document", sub: "Add staff documents", action: () => showView("documents") },
@@ -523,7 +535,8 @@ async function renderDashboard({ skeleton = true } = {}) {
     { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days", sub: "Action required", nav: () => openReport("visa90") },
     { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue", sub: "Immediate attention", nav: () => openReport("visa90") },
   ];
-  document.getElementById("stat-grid").innerHTML = STAT_CARDS.map((c) => `
+  const CARD_COLOR = { "": "var(--sage)", warn: "var(--amber)", danger: "var(--danger)" };
+  document.getElementById("stat-grid").innerHTML = STAT_CARDS.map((c, idx) => `
     <div class="stat-card clickable ${c.cls}" role="button" tabindex="0">
       <div class="stat-card-top">
         <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
@@ -532,6 +545,7 @@ async function renderDashboard({ skeleton = true } = {}) {
       <div class="num" data-target="${c.target}">0</div>
       <div class="label">${c.label}</div>
       <div class="sublabel">${c.sub}</div>
+      ${statSparkline(CARD_COLOR[c.cls] || "var(--sage)", idx)}
     </div>`).join("");
   document.querySelectorAll("#stat-grid .num").forEach((el) => animateCount(el, Number(el.dataset.target)));
   document.querySelectorAll("#stat-grid .stat-card").forEach((card, idx) => {
@@ -1134,13 +1148,16 @@ function renderReportsOverview() {
     { cls: "warn", icon: "var(--icon-clock)", target: expiring.length, label: "Expiring within 90 days", nav: () => openReport("visa90") },
     { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Already overdue", nav: () => openReport("visa90") },
   ];
-  grid.innerHTML = CARDS.map((c) => `
+  const CARD_COLOR = { "": "var(--sage)", warn: "var(--amber)", danger: "var(--danger)" };
+  grid.innerHTML = CARDS.map((c, idx) => `
     <div class="stat-card clickable ${c.cls}" role="button" tabindex="0">
       <div class="stat-card-top">
         <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+        <span class="trend-badge"><span class="icon-mask" aria-hidden="true"></span></span>
       </div>
       <div class="num" data-target="${c.target}">0</div>
       <div class="label">${c.label}</div>
+      ${statSparkline(CARD_COLOR[c.cls] || "var(--sage)", idx)}
     </div>`).join("");
   grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
   grid.querySelectorAll(".stat-card").forEach((card, idx) => {
@@ -1206,7 +1223,7 @@ function logReportRun(type, title, rows) {
   let needsAttention = false;
   if (problemTypes.includes(type)) needsAttention = rows.length > 0;
   else if (type === "rtwStatus") needsAttention = rows.some((r) => r[4] && r[4] !== "OK");
-  reportRunLog.unshift({ date: new Date(), title, needsAttention });
+  reportRunLog.unshift({ date: new Date(), title, needsAttention, type });
   if (reportRunLog.length > 8) reportRunLog.length = 8;
   if (window.renderReportCharts) window.renderReportCharts();
 }
@@ -1242,4 +1259,5 @@ window.__dcApp = {
   escapeHtml,
   showView,
   openReport,
+  showToast,
 };
