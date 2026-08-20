@@ -608,6 +608,35 @@ async function renderEmployeesTable({ skeleton = true } = {}) {
     tbody.appendChild(tr);
     tr.querySelector(".row-link").addEventListener("click", () => openEmployee(e.id));
   });
+  renderEmployeesStats();
+}
+
+function renderEmployeesStats() {
+  const grid = document.getElementById("employees-stat-grid");
+  if (!grid) return;
+  const total = employeesCache.length;
+  const active = employeesCache.filter((e) => (e.status || "active") === "active").length;
+  const visaDaysList = employeesCache.map((e) => daysUntil(e.visaExpiry)).filter((d) => d !== null);
+  const expiring = visaDaysList.filter((d) => d >= 0 && d <= 90).length;
+  const overdue = visaDaysList.filter((d) => d < 0).length;
+
+  const CARDS = [
+    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff records" },
+    { cls: "", icon: "var(--icon-idcard)", target: active, label: "Active staff" },
+    { cls: "warn", icon: "var(--icon-clock)", target: expiring, label: "Visas expiring ≤90 days" },
+    { cls: "danger", icon: "var(--icon-alert)", target: overdue, label: "Visas overdue" },
+  ];
+  const CARD_COLOR = { "": "var(--sage)", warn: "var(--amber)", danger: "var(--danger)" };
+  grid.innerHTML = CARDS.map((c, idx) => `
+    <div class="stat-card ${c.cls}">
+      <div class="stat-card-top">
+        <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+      </div>
+      <div class="num" data-target="${c.target}">0</div>
+      <div class="label">${c.label}</div>
+      ${statSparkline(CARD_COLOR[c.cls] || "var(--sage)", idx)}
+    </div>`).join("");
+  grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
 }
 
 /* ---------------- Employee detail / form ---------------- */
@@ -926,6 +955,8 @@ async function renderAllDocumentsView({ skeleton = true } = {}) {
     .filter((r) => !q || [r.empName, r.type, r.fileName].some((v) => (v || "").toLowerCase().includes(q)))
     .sort((a, b) => (b.uploadedAt || "").localeCompare(a.uploadedAt || ""));
 
+  renderDocumentsStats(rows);
+
   tbody.innerHTML = "";
   if (!filtered.length) {
     tbody.innerHTML = `<tr><td colspan="6" class="empty-note">${q ? "No documents match that search." : "No documents uploaded yet across any staff record."}</td></tr>`;
@@ -966,6 +997,32 @@ async function renderAllDocumentsView({ skeleton = true } = {}) {
       }
     });
   });
+}
+
+function renderDocumentsStats(rows) {
+  const grid = document.getElementById("documents-stat-grid");
+  if (!grid) return;
+  const total = rows.length;
+  const daysList = rows.map((r) => (r.expiry ? daysUntil(r.expiry) : null)).filter((d) => d !== null);
+  const expiring = daysList.filter((d) => d >= 0 && d <= 90).length;
+  const expired = daysList.filter((d) => d < 0).length;
+
+  const CARDS = [
+    { cls: "", icon: "var(--icon-file)", target: total, label: "Total documents" },
+    { cls: "warn", icon: "var(--icon-clock)", target: expiring, label: "Expiring ≤90 days" },
+    { cls: "danger", icon: "var(--icon-warndoc)", target: expired, label: "Expired" },
+  ];
+  const CARD_COLOR = { "": "var(--sage)", warn: "var(--amber)", danger: "var(--danger)" };
+  grid.innerHTML = CARDS.map((c, idx) => `
+    <div class="stat-card ${c.cls}">
+      <div class="stat-card-top">
+        <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+      </div>
+      <div class="num" data-target="${c.target}">0</div>
+      <div class="label">${c.label}</div>
+      ${statSparkline(CARD_COLOR[c.cls] || "var(--sage)", idx)}
+    </div>`).join("");
+  grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
 }
 
 /* ---------------- Contact staff ---------------- */
@@ -1022,6 +1079,8 @@ async function renderContactsView({ skeleton = true } = {}) {
     .filter((e) => !q || [e.fullName, e.department, e.jobTitle].some((v) => (v || "").toLowerCase().includes(q)))
     .sort((a, b) => (a.fullName || "").localeCompare(b.fullName || ""));
 
+  renderContactsStats();
+
   emptyEl.classList.toggle("hidden", employeesCache.length > 0);
   if (!filtered.length) {
     grid.innerHTML = q ? `<p class="empty-note">No staff match that search.</p>` : "";
@@ -1030,7 +1089,39 @@ async function renderContactsView({ skeleton = true } = {}) {
   grid.innerHTML = filtered.map(contactCardHtml).join("");
 }
 
+function renderContactsStats() {
+  const grid = document.getElementById("contacts-stat-grid");
+  if (!grid) return;
+  const total = employeesCache.length;
+  const withPhone = employeesCache.filter((e) => (e.phone || "").trim()).length;
+  const withEmail = employeesCache.filter((e) => (e.email || "").trim()).length;
+
+  const CARDS = [
+    { cls: "", icon: "var(--icon-people)", target: total, label: "Total staff" },
+    { cls: "", icon: "var(--icon-phone)", target: withPhone, label: "With phone number" },
+    { cls: "", icon: "var(--icon-info)", target: withEmail, label: "With email address" },
+  ];
+  grid.innerHTML = CARDS.map((c, idx) => `
+    <div class="stat-card ${c.cls}">
+      <div class="stat-card-top">
+        <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+      </div>
+      <div class="num" data-target="${c.target}">0</div>
+      <div class="label">${c.label}</div>
+      ${statSparkline("var(--sage)", idx)}
+    </div>`).join("");
+  grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
+}
+
 /* ---------------- Audit log ---------------- */
+function auditActionPillClass(action) {
+  const a = (action || "").toLowerCase();
+  if (a.includes("delet")) return "deleted";
+  if (a.includes("creat") || a.includes("added") || a.includes("uploaded")) return "created";
+  if (a.includes("updat") || a.includes("remov")) return "updated";
+  return "viewed";
+}
+
 async function renderAuditLog({ skeleton = true } = {}) {
   const tbody = document.querySelector("#audit-table tbody");
   if (skeleton) { renderSkeletonRows(tbody, 5, 4); await wait(150); }
@@ -1039,10 +1130,37 @@ async function renderAuditLog({ skeleton = true } = {}) {
     const tr = document.createElement("tr");
     tr.style.animationDelay = `${idx * 20}ms`;
     const when = a.ts?.toDate ? a.ts.toDate().toLocaleString() : "Just now";
-    tr.innerHTML = `<td>${when}</td><td>${escapeHtml(a.user)}</td><td>${escapeHtml(a.action)}</td><td>${escapeHtml(a.employeeName || "—")}</td><td>${escapeHtml(a.details || "")}</td>`;
+    tr.innerHTML = `<td>${when}</td><td>${escapeHtml(a.user)}</td><td><span class="pill ${auditActionPillClass(a.action)}">${escapeHtml(a.action)}</span></td><td>${escapeHtml(a.employeeName || "—")}</td><td>${escapeHtml(a.details || "")}</td>`;
     tbody.appendChild(tr);
   });
   if (!auditEntries.length) tbody.innerHTML = `<tr><td colspan="5" class="empty-note">No audit entries yet — actions you take will show up here.</td></tr>`;
+  renderAuditStats();
+}
+
+function renderAuditStats() {
+  const grid = document.getElementById("audit-stat-grid");
+  if (!grid) return;
+  const total = auditEntries.length;
+  const todayKey = new Date().toDateString();
+  const today = auditEntries.filter((a) => a.ts?.toDate && a.ts.toDate().toDateString() === todayKey).length;
+  const deletions = auditEntries.filter((a) => (a.action || "").toLowerCase().includes("delet")).length;
+
+  const CARDS = [
+    { cls: "", icon: "var(--icon-clock)", target: total, label: "Total entries" },
+    { cls: "", icon: "var(--icon-calendar)", target: today, label: "Actions today" },
+    { cls: "danger", icon: "var(--icon-alert)", target: deletions, label: "Deletions" },
+  ];
+  const CARD_COLOR = { "": "var(--sage)", danger: "var(--danger)" };
+  grid.innerHTML = CARDS.map((c, idx) => `
+    <div class="stat-card ${c.cls}">
+      <div class="stat-card-top">
+        <span class="stat-icon"><span class="icon-mask" style="--icon-url:${c.icon}" aria-hidden="true"></span></span>
+      </div>
+      <div class="num" data-target="${c.target}">0</div>
+      <div class="label">${c.label}</div>
+      ${statSparkline(CARD_COLOR[c.cls] || "var(--sage)", idx)}
+    </div>`).join("");
+  grid.querySelectorAll(".num").forEach((el) => animateCount(el, Number(el.dataset.target)));
 }
 
 /* ---------------- Reports (live) ---------------- */
