@@ -1,0 +1,39 @@
+/* ============================================================
+   PAGES POLISH — visual upgrade for Staff records, Staff
+   documents, Contact staff and Audit log to match the
+   Dashboard/Reports look (icon header badge, live stat cards,
+   panel-wrapped tables/grids). Purely additive.
+   ============================================================ */
+
+.page-header{ align-items:center; }
+.page-header-left{ display:flex; align-items:center; gap:16px; }
+.page-icon-badge{
+  width:48px; height:48px; border-radius:14px; flex:none;
+  background:linear-gradient(155deg,var(--sage-light),var(--teal-light));
+  color:var(--sage-deep); display:grid; place-items:center;
+  box-shadow:var(--shadow-sm);
+}
+.page-icon-badge .icon-mask{ width:22px; height:22px; }
+
+.list-panel{ margin-top:4px; padding-bottom:14px; }
+.list-panel .search-input{ margin-top:2px; }
+
+/* Stat grids on these pages sit right under the header, same
+   rhythm as the Dashboard/Reports stat rows. */
+#employees-stat-grid,
+#documents-stat-grid,
+#contacts-stat-grid,
+#audit-stat-grid{ margin-bottom:22px; }
+
+/* ---------------- Audit log action pills ---------------- */
+.pill.created{ background:var(--sage-light); color:var(--sage-deep); }
+.pill.updated{ background:var(--teal-light); color:var(--teal); }
+.pill.deleted{ background:var(--danger-light); color:var(--danger); }
+.pill.viewed{ background:var(--line-soft); color:var(--ink-soft); }
+
+/* ---------------- Contact directory polish ---------------- */
+.contact-grid{ margin-top:4px; }
+
+@media (max-width:820px){
+  .page-header{ align-items:flex-start; }
+}
