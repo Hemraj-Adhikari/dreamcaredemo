@@ -16,9 +16,9 @@
 .map-panel{ display:flex; flex-direction:column; }
 .map-side-col{ display:flex; flex-direction:column; gap:22px; }
 
-.world-map{ width:100%; height:auto; display:block; border-radius:var(--radius-md); overflow:hidden; }
-.world-ocean{ fill:var(--sage-lighter); }
-.world-land path{ fill:var(--line); opacity:.9; }
+.world-map{ width:100%; height:auto; display:block; border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--line-soft); }
+.world-ocean{ fill:#E9F2FA; }
+.world-land path{ fill:#A9C9B8; opacity:.95; }
 .world-dot circle{ transition:r .2s var(--ease); }
 .world-dot circle:first-child{ animation:2.6s ease-in-out infinite breathe-pill; transform-origin:center; transform-box:fill-box; }
 .world-dot:hover circle:last-child{ filter:brightness(1.08); }
